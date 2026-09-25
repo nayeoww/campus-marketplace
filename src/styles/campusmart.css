@@ -1,56 +1,56 @@
 /* ==========================================================================
-   CampusMart — design system (blue)
+   CampusMart — design system (warm paper + forest)
    Plain CSS only. No Tailwind utilities, no gradients, no glass, no blobs.
    Type: Space Grotesk for headings, Geist for body, Manrope for UI.
+   Light is the default; `html.dark` swaps the whole palette for night.
    Surfaces are soft and rounded — no hard bordered boxes anywhere.
    ========================================================================== */
 
 :root {
-  /* palette — coral blue ------------------------------------------------ */
-  --cm-bg: #e7ebf9;
-  --cm-bg-tint: #dbe2f6;
-  --cm-surface: #ffffff;
-  --cm-surface-soft: #f3f5fd;
+  color-scheme: light;
 
-  --cm-ink: #0c1a3d;
-  --cm-ink-soft: #3a4870;
-  --cm-muted: #7986a8;
+  /* paper canvas ---------------------------------------------------------- */
+  --cm-bg: #f6f2ea;
+  --cm-bg-tint: #ece5d8;
+  --cm-surface: #fffdf8;
+  --cm-surface-soft: #f2ece0;
 
-  /* coral drives every call to action, price and highlight */
-  --cm-accent: #ff6a4d;
-  --cm-accent-strong: #e14b2c;
-  --cm-accent-tint: #ffe7df;
-  --cm-accent-tint-2: #ffd4c7;
+  --cm-ink: #1a1913;
+  --cm-ink-soft: #4b4838;
+  --cm-muted: #7e7a67;
 
-  /* blue builds the canvas, tints and the deep navy surfaces */
-  --cm-blue: #2f5bea;
-  --cm-blue-strong: #1f45c9;
-  --cm-blue-tint: #e1e8ff;
-  --cm-blue-tint-2: #ccd8ff;
-  --cm-blue-deep: #0b1b4a;
+  /* forest drives every call to action, price and highlight */
+  --cm-forest: #1f6b4a;
+  --cm-forest-strong: #145238;
+  --cm-forest-tint: #e1ebe3;
+  --cm-forest-tint-2: #c7dccf;
+  --cm-forest-deep: #10281e;
 
-  --cm-teal: #0e9f8c;
-  --cm-teal-tint: #e2f6f2;
-  --cm-warn: #b4761a;
-  --cm-warn-tint: #fdf1dd;
-  --cm-danger: #c0273f;
-  --cm-danger-tint: #fbe6ea;
+  /* aliases kept so component rules stay readable */
+  --cm-accent: var(--cm-forest);
+  --cm-accent-strong: var(--cm-forest-strong);
+  --cm-accent-tint: var(--cm-forest-tint);
+  --cm-accent-tint-2: var(--cm-forest-tint-2);
 
-  /* ink that sits on the tinted notice surfaces */
-  --cm-danger-ink: #96283a;
-  --cm-warn-ink: #8c5a12;
-  --cm-teal-ink: #0a6f62;
+  /* status ---------------------------------------------------------------- */
+  --cm-warn-tint: #f6ead2;
+  --cm-warn-ink: #7a5514;
+  --cm-danger: #a2332a;
+  --cm-danger-tint: #f6e2dc;
+  --cm-danger-ink: #7c261e;
+  --cm-positive-tint: var(--cm-forest-tint);
+  --cm-positive-ink: var(--cm-forest-strong);
 
-  /* ink that sits on the deep navy surfaces */
-  --cm-on-deep: #dce4fb;
-  --cm-on-deep-soft: #b9c7ee;
-  --cm-on-deep-muted: #93a6d8;
-  --cm-on-deep-dim: #8fa3d6;
-  --cm-on-deep-faint: #7f93c6;
+  /* ink that sits on the deep forest surfaces */
+  --cm-on-deep: #e3ebe2;
+  --cm-on-deep-soft: #bdcdc1;
+  --cm-on-deep-muted: #9bac9f;
+  --cm-on-deep-dim: #87998b;
+  --cm-on-deep-faint: #788a7c;
 
-  --cm-placeholder: #9aa8c4;
+  --cm-placeholder: #a49f8c;
 
-  --cm-hairline: rgba(12, 26, 61, 0.1);
+  --cm-hairline: rgba(26, 25, 19, 0.12);
 
   /* type ---------------------------------------------------------------- */
   --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -65,12 +65,60 @@
   --r-xl: 28px;
   --r-pill: 999px;
 
-  --shadow-1: 0 1px 2px rgba(12, 26, 61, 0.05), 0 10px 22px -16px rgba(12, 26, 61, 0.3);
-  --shadow-2: 0 2px 6px rgba(12, 26, 61, 0.06), 0 28px 50px -28px rgba(12, 26, 61, 0.4);
-  --shadow-accent: 0 10px 22px -12px rgba(255, 106, 77, 0.8);
+  --shadow-1: 0 1px 2px rgba(26, 25, 19, 0.06), 0 10px 22px -16px rgba(26, 25, 19, 0.3);
+  --shadow-2: 0 2px 6px rgba(26, 25, 19, 0.07), 0 28px 50px -28px rgba(26, 25, 19, 0.4);
+  --shadow-accent: 0 10px 22px -12px rgba(31, 107, 74, 0.65);
 
   --cm-gutter: clamp(18px, 4vw, 54px);
   --cm-max: 1280px;
+}
+
+/* --------------------------------------------------------------------------
+   Night mode. `dark` goes on <html>; every token below simply replaces its
+   daytime value, so no other rule in this sheet has to know about it.
+   -------------------------------------------------------------------------- */
+html.dark {
+  color-scheme: dark;
+
+  --cm-bg: #131410;
+  --cm-bg-tint: #1d1f18;
+  --cm-surface: #1c1e17;
+  --cm-surface-soft: #23261d;
+
+  --cm-ink: #f1efe4;
+  --cm-ink-soft: #c3c0b0;
+  --cm-muted: #8d8a7a;
+
+  --cm-forest: #4eb586;
+  --cm-forest-strong: #7ddcac;
+  --cm-forest-tint: #1d3026;
+  --cm-forest-tint-2: #27402f;
+  --cm-forest-deep: #16281f;
+
+  --cm-warn-tint: #352a17;
+  --cm-warn-ink: #e0b466;
+  --cm-danger: #bf4f3f;
+  --cm-danger-tint: #38211d;
+  --cm-danger-ink: #f0a294;
+
+  --cm-on-deep: #dcefe3;
+  --cm-on-deep-soft: #b6cdbf;
+  --cm-on-deep-muted: #94ab9d;
+  --cm-on-deep-dim: #819888;
+  --cm-on-deep-faint: #74897b;
+
+  --cm-placeholder: #7c7969;
+
+  --cm-hairline: rgba(241, 239, 228, 0.14);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 22px -16px rgba(0, 0, 0, 0.8);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5), 0 28px 50px -28px rgba(0, 0, 0, 0.9);
+  --shadow-accent: 0 10px 22px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* The forest fill is bright at night, so its label has to invert. */
+html.dark .cm-btn--accent {
+  color: #0b1d14;
 }
 
 body {
@@ -131,7 +179,7 @@ body {
 }
 
 .cm-app :focus-visible {
-  outline: 3px solid rgba(255, 106, 77, 0.5);
+  outline: 3px solid rgba(31, 107, 74, 0.45);
   outline-offset: 2px;
 }
 
@@ -161,7 +209,7 @@ body {
 }
 
 .cm-band--ink {
-  background: var(--cm-blue-deep);
+  background: var(--cm-forest-deep);
   color: var(--cm-on-deep);
 }
 
@@ -668,7 +716,7 @@ body {
 .cm-textarea:focus {
   outline: none;
   background: var(--cm-surface);
-  box-shadow: 0 0 0 3px rgba(255, 106, 77, 0.22);
+  box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.2);
 }
 
 .cm-input::placeholder,
@@ -790,8 +838,8 @@ body {
 }
 
 .cm-notice--ok {
-  background: var(--cm-teal-tint);
-  color: var(--cm-teal-ink);
+  background: var(--cm-positive-tint);
+  color: var(--cm-positive-ink);
 }
 
 .cm-badge {
@@ -811,8 +859,8 @@ body {
 }
 
 .cm-badge--verified {
-  color: var(--cm-blue-strong);
-  background: var(--cm-blue-tint);
+  color: var(--cm-forest-strong);
+  background: var(--cm-forest-tint);
 }
 
 .cm-badge--accent {
@@ -1018,7 +1066,7 @@ body {
 .cm-card__dot {
   width: 6px;
   height: 6px;
-  background: var(--cm-blue);
+  background: var(--cm-forest);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1481,7 +1529,7 @@ body {
 
 .cm-band--ink .cm-btn--accent {
   background: #fff;
-  color: var(--cm-blue-deep);
+  color: var(--cm-forest-deep);
   box-shadow: none;
 }
 
@@ -1501,7 +1549,7 @@ body {
 /* -------------------------------------------------------------- footer --- */
 
 .cm-footer {
-  background: var(--cm-blue-deep);
+  background: var(--cm-forest-deep);
   color: var(--cm-on-deep-soft);
   padding-block: 60px 30px;
   margin-top: auto;
@@ -1888,7 +1936,7 @@ body {
 
 .cm-upload--active {
   background: var(--cm-accent-tint);
-  box-shadow: 0 0 0 3px rgba(255, 106, 77, 0.26);
+  box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.24);
 }
 
 .cm-upload__row {
@@ -2361,7 +2409,7 @@ body {
 
 .cm-auth__side {
   border-radius: var(--r-xl);
-  background: var(--cm-blue-deep);
+  background: var(--cm-forest-deep);
   color: var(--cm-on-deep);
   padding: clamp(34px, 4vw, 56px);
   display: flex;
@@ -2422,7 +2470,7 @@ body {
 .cm-otp-single:focus {
   outline: none;
   background: var(--cm-surface);
-  box-shadow: 0 0 0 3px rgba(255, 106, 77, 0.22);
+  box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.2);
 }
 
 .cm-checklist {
@@ -2535,7 +2583,7 @@ body {
 .cm-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(10, 31, 77, 0.5);
+  background: rgba(18, 17, 12, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;

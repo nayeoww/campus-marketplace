@@ -6,12 +6,26 @@
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#e7ebf9" />
+  <meta id="theme-color-meta" name="theme-color" content="#f6f2ea" />
   <meta
     name="description"
-    content="CampusMart is the student marketplace for SSIPMT — buy and sell with verified students, offer your skills as a service, and post or pick up small campus gigs."
+    content="CampusMart is the student marketplace for SSIPMT — buy and sell with verified students and hire the skills your classmates already have."
   />
   <title>CampusMart — the SSIPMT student marketplace</title>
+
+  <!-- Applied before first paint so night mode never flashes white. -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("campusmart-theme") === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (error) {
+        /* private mode or storage disabled — light is a fine default */
+      }
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <!-- Headings: Space Grotesk. Body: Geist. UI, labels, buttons: Manrope. -->
