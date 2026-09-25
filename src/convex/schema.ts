@@ -136,6 +136,22 @@ const schema = defineSchema(
       body: v.string(),
       createdAt: v.number(),
     }).index("by_conversation", ["conversationId", "createdAt"]),
+
+    /**
+     * One-time codes for campus sign-in. Convex owns the lifecycle: issue
+     * (rate limited), deliver (action), then consume once verified.
+     */
+    otpCodes: defineTable({
+      email: v.string(),
+      code: v.string(),
+      expiresAt: v.number(),
+      attempts: v.number(),
+      maxAttempts: v.number(),
+      createdAt: v.number(),
+      deliveredAt: v.optional(v.number()),
+      consumedAt: v.optional(v.number()),
+      failedReason: v.optional(v.string()),
+    }).index("by_email", ["email", "createdAt"]),
   },
   {
     schemaValidation: false,

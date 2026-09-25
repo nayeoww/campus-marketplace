@@ -80,7 +80,7 @@ const STUDENTS: SeedStudent[] = [
 
 type SeedListing = {
   student: number;
-  kind: "item" | "service" | "gig";
+  kind: "item" | "service";
   title: string;
   category: string;
   description: string;
@@ -247,44 +247,26 @@ const LISTINGS: SeedListing[] = [
     turnaround: "Ready in 24 hours",
   },
   {
-    student: 6,
-    kind: "gig",
-    title: "Collect my documents from the admin block",
-    category: "Errands",
+    student: 5,
+    kind: "service",
+    title: "Event photography and coverage for clubs",
+    category: "Video & Photo",
     description:
-      "My migration certificate is ready at the admin counter but I have labs straight through till five. Need someone to collect the sealed envelope and meet me near the civil block. Bring your ID card, they ask for it at the counter.",
-    price: 100,
-    location: "Admin block to Civil block",
-  },
-  {
-    student: 1,
-    kind: "gig",
-    title: "Print and spiral-bind a 90-page project report",
-    category: "Notes & printing",
-    description:
-      "The PDF is ready and I will send it over. Need one black-and-white copy printed single side, spiral bound with a transparent cover and a black back sheet. Paying for the print cost on top of the fee, receipt not needed.",
-    price: 150,
-    location: "College stationery shop",
-  },
-  {
-    student: 2,
-    kind: "gig",
-    title: "Photographer needed for club induction, two hours",
-    category: "Photography",
-    description:
-      "Our club induction is on Saturday from 11 to 1 in the seminar hall. Looking for someone with a decent camera to cover the welcome talk, the team introductions and a few group photos. You keep your credit on the photos we post.",
-    price: 1200,
-    location: "Seminar hall",
+      "Inductions, fests and society drives covered end to end: candid shots, group photos and a shared album the same evening. You get the credit on everything we publish.",
+    price: 900,
+    priceNote: "per event",
+    turnaround: "Album shared the same day",
   },
   {
     student: 4,
-    kind: "gig",
-    title: "Help me set up a dual-boot Linux machine",
-    category: "Tech help",
+    kind: "service",
+    title: "Printing and spiral binding for project reports",
+    category: "Writing",
     description:
-      "Want Windows kept intact while I add Ubuntu on a second partition. I have the ISO and a spare 16 GB pen drive. Looking for someone who has done this before and can sit with me for about an hour in the hostel.",
-    price: 200,
-    location: "Boys Hostel B, room 108",
+      "Send the PDF, collect a properly bound report with a transparent cover and a black back sheet. Black and white or colour, single or double sided — print cost is billed at the shop rate.",
+    price: 120,
+    priceNote: "plus print cost",
+    turnaround: "Ready in a few hours",
   },
 ];
 
