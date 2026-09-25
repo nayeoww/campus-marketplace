@@ -6,7 +6,7 @@ export const CAMPUS_SHORT = "SSIPMT";
 export const CAMPUS_DOMAIN = "ssipmt.com";
 export const CAMPUS_EMAIL_HINT = `name@${CAMPUS_DOMAIN}`;
 
-export type ListingKind = "item" | "service" | "gig";
+export type ListingKind = "item" | "service";
 export type ListingStatus = "live" | "reserved" | "sold" | "closed";
 
 export type Seller = {
@@ -56,16 +56,6 @@ export const KIND_META: Record<
       "Design, code, tutoring, repairs and notes — work done by seniors and classmates who have already sat the same exams.",
     cta: "Offer a service",
   },
-  gig: {
-    label: "Gigs",
-    noun: "Gig",
-    route: "/gigs",
-    mark: "Wanted",
-    headline: "Small jobs, handled by the next hostel block",
-    blurb:
-      "Print a report, collect a certificate, shoot a club event. Post what you need and a student nearby picks it up.",
-    cta: "Post a gig",
-  },
 };
 
 export const CATEGORIES: Record<ListingKind, string[]> = {
@@ -86,15 +76,6 @@ export const CATEGORIES: Record<ListingKind, string[]> = {
     "Tutoring",
     "Video & Photo",
     "Repairs",
-    "Events",
-    "Other",
-  ],
-  gig: [
-    "Errands",
-    "Deliveries",
-    "Photography",
-    "Tech help",
-    "Notes & printing",
     "Events",
     "Other",
   ],
@@ -146,11 +127,6 @@ export const MESSAGE_STARTERS: Record<ListingKind, string[]> = {
     "Hi! Are you free this week?",
     "What do you need from me to start?",
     "Can you share samples of earlier work?",
-  ],
-  gig: [
-    "Hi! I can take this up.",
-    "When do you need it finished?",
-    "Where should we meet?",
   ],
 };
 
@@ -207,7 +183,6 @@ export function listingKicker(listing: {
   const parts: string[] = [KIND_META[listing.kind].noun, listing.category];
   if (listing.kind === "item" && listing.condition) parts.push(listing.condition);
   if (listing.kind === "service" && listing.turnaround) parts.push(listing.turnaround);
-  if (listing.kind === "gig" && listing.location) parts.push(listing.location);
   return parts;
 }
 

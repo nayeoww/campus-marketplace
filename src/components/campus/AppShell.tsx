@@ -1,6 +1,7 @@
 import { Initials } from "@/components/campus/Bits";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { CAMPUS_DOMAIN, CAMPUS_NAME, CAMPUS_SHORT } from "@/lib/campus";
 import { useQuery } from "convex/react";
 import { useState, type ReactNode } from "react";
@@ -16,7 +17,6 @@ type NavItem = {
 const NAV: NavItem[] = [
   { to: "/market", label: "Marketplace" },
   { to: "/services", label: "Services" },
-  { to: "/gigs", label: "Gigs" },
   { to: "/my-listings", label: "My listings", gated: true },
   { to: "/messages", label: "Messages", gated: true, badge: true },
   { to: "/profile", label: "Profile", gated: true },
@@ -25,6 +25,28 @@ const NAV: NavItem[] = [
 function hrefFor(item: NavItem, signedIn: boolean) {
   if (!item.gated || signedIn) return item.to;
   return `/auth?returnTo=${encodeURIComponent(item.to)}`;
+}
+
+/** One control, shared by the desktop header and the mobile drawer. */
+function ThemeToggle({ compact }: { compact?: boolean }) {
+  const { isDark, toggleTheme } = useTheme();
+
+  return (
+    <button
+      type="button"
+      className="cm-theme"
+      data-on={isDark}
+      onClick={toggleTheme}
+      aria-pressed={isDark}
+      aria-label={isDark ? "Switch to the day theme" : "Switch to the night theme"}
+      title={isDark ? "Switch to the day theme" : "Switch to the night theme"}
+    >
+      <span className="cm-theme__track" aria-hidden="true">
+        <i />
+      </span>
+      {!compact && (isDark ? "Night" : "Day")}
+    </button>
+  );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -75,6 +97,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </nav>
 
             <div className="cm-header__actions">
+              <ThemeToggle />
+
               {isAuthenticated ? (
                 <>
                   <Link to="/post" className="cm-btn cm-btn--accent cm-btn--sm">
@@ -136,6 +160,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 )}
               </Link>
             ))}
+            <Link to="/terms" onClick={() => setMenuOpen(false)}>
+              Campus rules
+            </Link>
             {isAuthenticated ? (
               <button
                 type="button"
@@ -166,9 +193,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="cm-footer__col">
               <span className="cm-brand__mark">{CAMPUS_NAME}</span>
               <p>
-                The student marketplace for {CAMPUS_SHORT}. Buy and sell what
-                you have finished with, offer the skills you already have, and
-                hand small jobs to the next hostel block.
+                The student marketplace for {CAMPUS_SHORT}. Buy and sell what you
+                have finished with, and hire the skills your classmates already
+                have.
               </p>
               <p className="cm-note">
                 Built and run by one student. Accounts are limited to
@@ -177,23 +204,20 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="cm-footer__col">
-              <span className="cm-footer__title">Marketplace</span>
+              <span className="cm-footer__title">Browse</span>
               <Link to="/market" className="cm-link">
                 Buy &amp; sell
               </Link>
               <Link to="/services" className="cm-link">
                 Services
               </Link>
-              <Link to="/gigs" className="cm-link">
-                Gigs
+              <Link to="/post" className="cm-link">
+                Post something
               </Link>
             </div>
 
             <div className="cm-footer__col">
               <span className="cm-footer__title">Your account</span>
-              <Link to="/post" className="cm-link">
-                Post something
-              </Link>
               <Link to="/my-listings" className="cm-link">
                 My listings
               </Link>
@@ -206,10 +230,19 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="cm-footer__col">
-              <span className="cm-footer__title">Campus rules</span>
-              <span>Verified {CAMPUS_SHORT} students only</span>
-              <span>Meet on campus, check before you pay</span>
-              <span>Report anything that looks off</span>
+              <span className="cm-footer__title">Rules &amp; policies</span>
+              <Link to="/terms#rules" className="cm-link">
+                Campus rules
+              </Link>
+              <Link to="/terms#terms" className="cm-link">
+                Terms &amp; conditions
+              </Link>
+              <Link to="/terms#cookies" className="cm-link">
+                Cookies
+              </Link>
+              <Link to="/terms#privacy" className="cm-link">
+                Privacy
+              </Link>
             </div>
           </div>
 

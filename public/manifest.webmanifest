@@ -1,11 +1,11 @@
 {
   "name": "CampusMart — SSIPMT student marketplace",
   "short_name": "CampusMart",
-  "description": "The private marketplace where SSIPMT students buy and sell, offer services and post small gigs.",
+  "description": "The private marketplace where SSIPMT students buy and sell, and hire the skills their classmates already have.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#e7ebf9",
-  "theme_color": "#0b1b4a",
+  "background_color": "#f6f2ea",
+  "theme_color": "#10281e",
   "icons": [
     {
       "src": "/logo.svg",
