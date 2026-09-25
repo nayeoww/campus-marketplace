@@ -182,6 +182,7 @@ export const campusStats = query({
       listings: listings.filter((row) => row.status === "live").length,
       items: listings.filter((row) => row.kind === "item" && row.status === "live").length,
       services: listings.filter((row) => row.kind === "service" && row.status === "live").length,
+      gigs: listings.filter((row) => row.kind === "gig" && row.status === "live").length,
       students: sellers.size,
     };
   },
