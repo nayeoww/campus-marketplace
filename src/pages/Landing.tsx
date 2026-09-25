@@ -15,50 +15,11 @@ import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import { Link } from "react-router";
 
-/** Shown until the first students post, so the board is never a blank box. */
-const SAMPLE_ROWS = [
-  {
-    kicker: "For sale · Calculators",
-    title: "Casio fx-991ES PLUS, spare battery included",
-    price: 650,
-    seller: "Nayan",
-    time: "2 hours ago",
-  },
-  {
-    kicker: "Service · Coding",
-    title: "Python and DSA assignment help",
-    price: 500,
-    seller: "Ipsita",
-    time: "6 hours ago",
-  },
-  {
-    kicker: "For sale · Books",
-    title: "Concepts of Physics, both volumes",
-    price: 380,
-    seller: "Ananya",
-    time: "Yesterday",
-  },
-  {
-    kicker: "Gig · Errands",
-    title: "Collect a certificate from the admin block",
-    price: 100,
-    seller: "Devansh",
-    time: "Yesterday",
-  },
-  {
-    kicker: "Service · Design",
-    title: "Poster design for club events",
-    price: 800,
-    seller: "Rehan",
-    time: "2 days ago",
-  },
-];
-
 const HOW_IT_WORKS = [
   {
     index: "01",
     title: "Register with your SSIPMT email",
-    body: `Sign in with your @${CAMPUS_DOMAIN} address. A six-digit code proves the address is yours, and no one from outside the institute can get an account.`,
+    body: `Sign in with your @${CAMPUS_DOMAIN} address. A six-digit code proves the address is yours, so nobody from outside the institute can get an account.`,
   },
   {
     index: "02",
@@ -68,12 +29,12 @@ const HOW_IT_WORKS = [
   {
     index: "03",
     title: "Post something, or reply to a post",
-    body: "List an item you are done with, offer the work you are good at, or ask for a small gig. Messaging opens the moment you find someone.",
+    body: "List an item you are done with, offer the work you are good at, or ask about something you need. Messaging opens the moment you find someone.",
   },
   {
     index: "04",
     title: "Settle it on campus",
-    body: "Check the item, agree on the price and hand it over at the canteen, the library or your block. CampusMart takes no cut and ships nothing.",
+    body: `Check the item, agree on the price and hand it over at the canteen, the library or your block. ${CAMPUS_NAME} takes no cut and ships nothing.`,
   },
 ];
 
@@ -81,7 +42,6 @@ export default function Landing() {
   const { isAuthenticated } = useCampusUser();
   const itemFeed = useQuery(api.listings.feed, { kind: "item", limit: 24 });
   const serviceFeed = useQuery(api.listings.feed, { kind: "service", limit: 4 });
-  const gigFeed = useQuery(api.listings.feed, { kind: "gig", limit: 4 });
   const stats = useQuery(api.listings.campusStats);
   const seed = useMutation(api.seed.loadDemoListings);
   const [seeding, setSeeding] = useState(false);
@@ -91,14 +51,10 @@ export default function Landing() {
 
   const items = itemFeed?.listings ?? [];
   const services = serviceFeed?.listings ?? [];
-  const gigs = gigFeed?.listings ?? [];
 
-  const boardRows =
-    items.length + services.length + gigs.length > 0
-      ? [...items.slice(0, 3), ...services.slice(0, 1), ...gigs.slice(0, 1)]
-          .sort((a, b) => b.createdAt - a.createdAt)
-          .slice(0, 5)
-      : [];
+  const boardRows = [...items.slice(0, 4), ...services.slice(0, 2)]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 5);
 
   const categoryCounts = CATEGORIES.item.map((category) => ({
     category,
@@ -140,11 +96,9 @@ export default function Landing() {
             </h1>
 
             <p className="cm-hero__lede">
-              {CAMPUS_NAME} is the marketplace for {CAMPUS_SHORT} — textbooks,
-              calculators, hostel gear, typed notes, and the design or coding
-              work your classmates already do well. Every post comes from a
-              verified student, so the person on the other end of the deal is
-              someone you can actually meet between lectures.
+              Textbooks, calculators and hostel gear, plus the design, coding
+              and tutoring your classmates already do well — posted by verified
+              students, handed over on campus.
             </p>
 
             <div className="cm-hero__cta">
@@ -155,28 +109,19 @@ export default function Landing() {
                 List something
               </Link>
             </div>
-
-            <div className="cm-hero__terms">
-              <span>@{CAMPUS_DOMAIN} accounts only</span>
-              <span>No listing fees</span>
-              <span>Handovers on campus</span>
-              <span>No phone numbers shown</span>
-            </div>
           </div>
 
-          {/* Vertical stack of real listings instead of an illustration. */}
+          {/* Live board instead of an illustration. */}
           <aside className="cm-board" aria-label="Latest listings">
             <div className="cm-board__head">
               <span className="cm-meta">
-                {boardRows.length > 0 ? "Latest on campus" : "What gets posted"}
+                {boardRows.length > 0 ? "Latest on campus" : "On the board"}
               </span>
-              {boardRows.length > 0 ? (
+              {boardRows.length > 0 && (
                 <span className="cm-board__live">
                   <i />
                   Live
                 </span>
-              ) : (
-                <span className="cm-meta">Examples</span>
               )}
             </div>
 
@@ -192,9 +137,7 @@ export default function Landing() {
                   className="cm-board__row"
                 >
                   <span>
-                    <span className="cm-board__kicker">
-                      {listing.category}
-                    </span>
+                    <span className="cm-board__kicker">{listing.category}</span>
                     <span className="cm-board__title">{listing.title}</span>
                   </span>
                   <span className="cm-board__price">
@@ -208,22 +151,12 @@ export default function Landing() {
                 </Link>
               ))
             ) : (
-              SAMPLE_ROWS.map((row) => (
-                <div key={row.title} className="cm-board__row">
-                  <span>
-                    <span className="cm-board__kicker">{row.kicker}</span>
-                    <span className="cm-board__title">{row.title}</span>
-                  </span>
-                  <span className="cm-board__price">
-                    {formatPrice(row.price)}
-                  </span>
-                  <span className="cm-board__meta">
-                    {row.seller}
-                    <span aria-hidden="true">·</span>
-                    {row.time}
-                  </span>
-                </div>
-              ))
+              <div className="cm-board__empty">
+                <span className="cm-board__title">Nothing posted yet</span>
+                <span className="cm-board__meta">
+                  A calculator or a set of notes is enough to start.
+                </span>
+              </div>
             )}
 
             <div className="cm-board__foot">
@@ -238,9 +171,9 @@ export default function Landing() {
                 </>
               ) : (
                 <>
-                  <span className="cm-meta">Nothing posted yet</span>
+                  <span className="cm-meta">Be the first</span>
                   <Link to={postHref} className="cm-textlink">
-                    Post the first listing
+                    Post a listing
                   </Link>
                 </>
               )}
@@ -269,8 +202,7 @@ export default function Landing() {
           <div className="cm-rail">
             <h2 className="cm-display cm-h2">Fresh on campus</h2>
             <p className="cm-note">
-              The newest posts from students across all three parts of{" "}
-              {CAMPUS_NAME}.
+              The newest posts from students across both sides of {CAMPUS_NAME}.
             </p>
             <div className="cm-fact-list">
               <div className="cm-fact">
@@ -284,10 +216,6 @@ export default function Landing() {
               <div className="cm-fact">
                 <span>Services offered</span>
                 <strong>{stats?.services ?? 0}</strong>
-              </div>
-              <div className="cm-fact">
-                <span>Gigs open</span>
-                <strong>{stats?.gigs ?? 0}</strong>
               </div>
             </div>
             <Link to="/market" className="cm-textlink">
@@ -308,7 +236,7 @@ export default function Landing() {
               <EmptyState
                 eyebrow="Empty shelves"
                 title="Nothing has been posted yet"
-                body={`${CAMPUS_NAME} is brand new, so the marketplace is still empty. Load a handful of example listings to see how a busy campus looks, or post the first real one.`}
+                body={`${CAMPUS_NAME} is brand new, so the board is still empty. Load a handful of example posts, or put up the first real one.`}
               >
                 <div className="cm-actions">
                   <button
@@ -330,17 +258,17 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* --------------------------------------------------- three modes */}
+      {/* ------------------------------------------------------ two modes */}
       <section className="cm-band cm-band--deep">
         <div className="cm-shell">
           <div className="cm-section-head">
-            <h2 className="cm-display cm-h2">Three ways to use it</h2>
+            <h2 className="cm-display cm-h2">Two ways to use it</h2>
             <span className="cm-section-head__meta">
-              Marketplace · Services · Gigs
+              Marketplace · Services
             </span>
           </div>
 
-          <div className="cm-columns-3">
+          <div className="cm-columns-2">
             <div className="cm-entry">
               <span className="cm-entry__index">01 / MARKETPLACE</span>
               <h3 className="cm-entry__title">
@@ -376,47 +304,12 @@ export default function Landing() {
                 See student services
               </Link>
             </div>
-
-            <div className="cm-entry">
-              <span className="cm-entry__index">03 / GIGS</span>
-              <h3 className="cm-entry__title">
-                Hand the small jobs to someone nearby
-              </h3>
-              <p className="cm-entry__body">
-                A printout, a certificate at the admin counter, an hour of
-                photography for a club event. Post what you need and name what
-                you will pay.
-              </p>
-              <span className="cm-entry__meta">{stats?.gigs ?? 0} gigs open</span>
-              <Link to="/gigs" className="cm-textlink">
-                Look at open gigs
-              </Link>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* -------------------------------------------------- services + gigs */}
-      {(services.length > 0 || gigs.length > 0) && (
-        <section className="cm-band">
-          <div className="cm-shell">
-            <div className="cm-section-head">
-              <h2 className="cm-display cm-h2">Work on the board right now</h2>
-              <span className="cm-section-head__meta">
-                Skills and jobs posted this week
-              </span>
-            </div>
-            <div className="cm-columns-4">
-              {[...services.slice(0, 2), ...gigs.slice(0, 2)].map((listing) => (
-                <ListingCard key={listing._id} listing={listing} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* ----------------------------------------------------- how it works */}
-      <section className="cm-band cm-band--deep">
+      <section className="cm-band">
         <div className="cm-shell">
           <div className="cm-section-head">
             <h2 className="cm-display cm-h2">How {CAMPUS_NAME} works</h2>

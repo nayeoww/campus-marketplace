@@ -120,9 +120,7 @@ export default function Browse({ kind }: { kind: ListingKind }) {
               placeholder={
                 kind === "item"
                   ? "calculator, hostel, notes…"
-                  : kind === "service"
-                    ? "coding, tutoring, posters…"
-                    : "printing, errands, photos…"
+                  : "coding, tutoring, posters…"
               }
               aria-label={`Search ${meta.label.toLowerCase()}`}
             />
