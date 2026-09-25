@@ -1,6 +1,7 @@
 import { Email } from "@convex-dev/auth/providers/Email";
 import axios from "axios";
 import { RandomReader, generateRandomString } from "@oslojs/crypto/random";
+import { CAMPUS_DOMAIN, isCampusEmail } from "../helpers";
 
 export const emailOtp = Email({
   id: "email-otp",
@@ -16,13 +17,21 @@ export const emailOtp = Email({
     return generateRandomString(random, alphabet, 6);
   },
   async sendVerificationRequest({ identifier: email, token }) {
+    // CampusMart is a closed campus marketplace: no code is ever sent to an
+    // address outside the SSIPMT domain, so an outside account cannot exist.
+    if (!isCampusEmail(email)) {
+      throw new Error(
+        `CampusMart is open to SSIPMT students only. Register with your @${CAMPUS_DOMAIN} email address.`,
+      );
+    }
+
     try {
       await axios.post(
         "https://auth.freebuff.app/send_otp",
         {
           to: email,
           otp: token,
-          appName: process.env.VLY_APP_NAME || "a freebuff.com application",
+          appName: process.env.VLY_APP_NAME || "CampusMart",
         },
         {
           headers: {

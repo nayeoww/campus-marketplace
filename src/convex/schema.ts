@@ -16,6 +16,31 @@ export const roleValidator = v.union(
 );
 export type Role = Infer<typeof roleValidator>;
 
+/**
+ * CampusMart listing kinds:
+ *  - `item`    -> buy & sell (textbooks, calculators, hostel gear, ...)
+ *  - `service` -> freelance work offered by a student
+ *  - `gig`     -> a short one-off task posted by a student
+ */
+export const listingKindValidator = v.union(
+  v.literal("item"),
+  v.literal("service"),
+  v.literal("gig"),
+);
+export type ListingKind = Infer<typeof listingKindValidator>;
+
+/**
+ * `live` is what the marketplace feeds show. `reserved` means a deal is being
+ * settled, `sold` is a completed sale and `closed` is a withdrawn post.
+ */
+export const listingStatusValidator = v.union(
+  v.literal("live"),
+  v.literal("reserved"),
+  v.literal("sold"),
+  v.literal("closed"),
+);
+export type ListingStatus = Infer<typeof listingStatusValidator>;
+
 const schema = defineSchema(
   {
     // default auth tables using convex auth.
@@ -32,12 +57,85 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
-    // add other tables here
+    /** Student profile that is completed after the campus email is verified. */
+    profiles: defineTable({
+      userId: v.id("users"),
+      branch: v.string(),
+      year: v.string(),
+      hostel: v.optional(v.string()),
+      bio: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }).index("by_user", ["userId"]),
 
-    // tableName: defineTable({
-    //   ...
-    //   // table fields
-    // }).index("by_field", ["field"])
+    /** Everything posted by students: items for sale, services and gigs. */
+    listings: defineTable({
+      kind: listingKindValidator,
+      title: v.string(),
+      description: v.string(),
+      category: v.string(),
+      price: v.optional(v.number()),
+      priceNote: v.optional(v.string()),
+      condition: v.optional(v.string()),
+      location: v.optional(v.string()),
+      turnaround: v.optional(v.string()),
+      images: v.array(v.string()),
+      sellerId: v.id("users"),
+      status: listingStatusValidator,
+      views: v.number(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_kind", ["kind", "status", "createdAt"])
+      .index("by_seller", ["sellerId", "createdAt"])
+      .index("by_created", ["createdAt"]),
+
+    /** Shortlisted listings a student has saved for later. */
+    saves: defineTable({
+      userId: v.id("users"),
+      listingId: v.id("listings"),
+      createdAt: v.number(),
+    })
+      .index("by_user", ["userId", "createdAt"])
+      .index("by_user_listing", ["userId", "listingId"])
+      .index("by_listing", ["listingId"]),
+
+    /** Reports raised from a listing page, reviewed by the campus moderator. */
+    reports: defineTable({
+      listingId: v.id("listings"),
+      reporterId: v.id("users"),
+      reason: v.string(),
+      note: v.optional(v.string()),
+      createdAt: v.number(),
+    }).index("by_listing", ["listingId"]),
+
+    /**
+     * A thread between two students. `a`/`b` are always stored in a canonical
+     * order so a pair of students only ever has one thread per listing.
+     */
+    conversations: defineTable({
+      listingId: v.optional(v.id("listings")),
+      a: v.id("users"),
+      b: v.id("users"),
+      aUnread: v.number(),
+      bUnread: v.number(),
+      aReadAt: v.number(),
+      bReadAt: v.number(),
+      lastMessageAt: v.number(),
+      lastMessagePreview: v.string(),
+      lastSenderId: v.id("users"),
+      createdAt: v.number(),
+    })
+      .index("by_a", ["a", "lastMessageAt"])
+      .index("by_b", ["b", "lastMessageAt"])
+      .index("by_pair", ["a", "b", "listingId"]),
+
+    messages: defineTable({
+      conversationId: v.id("conversations"),
+      senderId: v.id("users"),
+      body: v.string(),
+      createdAt: v.number(),
+    }).index("by_conversation", ["conversationId", "createdAt"]),
   },
   {
     schemaValidation: false,

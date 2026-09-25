@@ -1,11 +1,11 @@
 {
-  "name": "freebuff.com application",
-  "short_name": "freebuff.com",
-  "description": "freebuff.com application",
+  "name": "CampusMart — SSIPMT student marketplace",
+  "short_name": "CampusMart",
+  "description": "The private marketplace where SSIPMT students buy and sell, offer services and post small gigs.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#f6f3ec",
+  "theme_color": "#191713",
   "icons": [
     {
       "src": "/logo.svg",
