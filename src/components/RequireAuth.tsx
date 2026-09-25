@@ -1,19 +1,12 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { AppShell } from "@/components/campus/AppShell";
+import { Loading } from "@/components/campus/Bits";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2, Lock } from "lucide-react";
+import { CAMPUS_DOMAIN, CAMPUS_NAME, CAMPUS_SHORT } from "@/lib/campus";
 import type { ReactNode } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router";
 
 /**
- * Wraps a route that requires a signed-in user.
+ * Wraps a route that requires a signed-in student.
  *
  * Signed-out visitors used to be bounced straight to `/auth`, which left them
  * on a bare sign-in form with no idea which page they had asked for or why they
@@ -24,7 +17,7 @@ import { Navigate, useLocation, useNavigate } from "react-router";
 export function RequireAuth({
   children,
   title = "Sign in to continue",
-  description = "This page is only available to signed-in users.",
+  description = `Listing, saving and messaging on ${CAMPUS_NAME} is limited to verified ${CAMPUS_SHORT} students.`,
   redirectImmediately = false,
 }: {
   children: ReactNode;
@@ -41,9 +34,11 @@ export function RequireAuth({
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
-      </main>
+      <AppShell>
+        <div className="cm-shell">
+          <Loading label="Checking your session" />
+        </div>
+      </AppShell>
     );
   }
 
@@ -56,34 +51,56 @@ export function RequireAuth({
     }
 
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-6">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center">
-              <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
-                <Lock className="size-5 text-muted-foreground" />
+      <AppShell>
+        <div className="cm-shell cm-gate">
+          <div className="cm-stack" style={{ gap: 18 }}>
+            <p className="cm-eyebrow">
+              {CAMPUS_SHORT} students only
+              <span className="cm-eyebrow__rule" />
+            </p>
+            <h1 className="cm-display cm-h2">{title}</h1>
+            <p className="cm-lede">{description}</p>
+            <p className="cm-note">
+              Sign in with the email address issued by the institute
+              (@{CAMPUS_DOMAIN}). You will come straight back to this page.
+            </p>
+            <div className="cm-actions" style={{ marginTop: 6 }}>
+              <button
+                type="button"
+                className="cm-btn cm-btn--accent"
+                onClick={() => navigate(signInHref)}
+              >
+                Sign in with your {CAMPUS_SHORT} email
+              </button>
+              <button
+                type="button"
+                className="cm-btn cm-btn--quiet"
+                onClick={() => navigate("/market")}
+              >
+                Browse the marketplace instead
+              </button>
+            </div>
+          </div>
+
+          <aside className="cm-panel">
+            <p className="cm-mono">Why signing in is required</p>
+            <div className="cm-fact-list" style={{ marginTop: 12 }}>
+              <div className="cm-fact">
+                <span>Verified {CAMPUS_SHORT} students only</span>
+                <span className="cm-mono">01</span>
+              </div>
+              <div className="cm-fact">
+                <span>No phone numbers shown publicly</span>
+                <span className="cm-mono">02</span>
+              </div>
+              <div className="cm-fact">
+                <span>Deals happen on campus, in person</span>
+                <span className="cm-mono">03</span>
               </div>
             </div>
-            <CardTitle className="text-xl">{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center text-sm text-muted-foreground">
-            You'll come straight back to this page once you're signed in.
-          </CardContent>
-          <CardFooter className="flex flex-col gap-2">
-            <Button className="w-full" onClick={() => navigate(signInHref)}>
-              Sign in
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => navigate("/")}
-            >
-              Back to home
-            </Button>
-          </CardFooter>
-        </Card>
-      </main>
+          </aside>
+        </div>
+      </AppShell>
     );
   }
 

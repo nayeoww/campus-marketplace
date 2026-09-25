@@ -1,304 +1,316 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-
+import { AppShell } from "@/components/campus/AppShell";
+import { Notice } from "@/components/campus/Bits";
 import { useAuth } from "@/hooks/use-auth";
-import logo from "@/assets/logo.svg";
-import { ArrowRight, Loader2, Mail, UserX } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { useCampusUser } from "@/hooks/use-campus-user";
+import {
+  CAMPUS_DOMAIN,
+  CAMPUS_EMAIL_HINT,
+  CAMPUS_NAME,
+  CAMPUS_SHORT,
+  isCampusEmail,
+} from "@/lib/campus";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
 interface AuthProps {
   redirectAfterAuth?: string;
 }
 
-function resolveRedirectAfterAuth(
-  returnTo: string | null,
-  fallback = "/dashboard",
-) {
+function resolveRedirectAfterAuth(returnTo: string | null, fallback = "/market") {
   if (returnTo?.startsWith("/") && !returnTo.startsWith("//")) {
     return returnTo;
   }
   return fallback;
 }
 
+/** Convex wraps thrown errors in deployment noise; show the human sentence. */
+function readableAuthError(error: unknown) {
+  const raw = error instanceof Error ? error.message : String(error);
+  if (raw.toLowerCase().includes("ssipmt")) {
+    return `CampusMart runs on @${CAMPUS_DOMAIN} addresses only. Use the email address the institute gave you.`;
+  }
+  if (
+    raw.toLowerCase().includes("invalid") ||
+    raw.toLowerCase().includes("code") ||
+    raw.toLowerCase().includes("expired")
+  ) {
+    return "That code did not match. Check the six digits and try again, or send a new code.";
+  }
+  return "Something went wrong on the way to your inbox. Try again in a moment.";
+}
+
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
-  const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const { isAuthenticated, signIn } = useAuth();
+  const { me } = useCampusUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
-  const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
-  const [otp, setOtp] = useState("");
+
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Once the session lands, students without a profile finish setup first.
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      navigate(redirect);
+    if (!isAuthenticated || me === undefined) return;
+    if (me && !me.profile) {
+      navigate(`/welcome?returnTo=${encodeURIComponent(redirect)}`, { replace: true });
+      return;
     }
-  }, [authLoading, isAuthenticated, navigate, redirect]);
+    navigate(redirect, { replace: true });
+  }, [isAuthenticated, me, navigate, redirect]);
+
+  const sendCode = async (address: string) => {
+    const data = new FormData();
+    data.set("email", address);
+    await signIn("email-otp", data);
+  };
+
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const address = email.trim().toLowerCase();
+
+    if (!isCampusEmail(address)) {
+      setError(
+        `CampusMart is open to ${CAMPUS_SHORT} students only. Use your @${CAMPUS_DOMAIN} email address.`,
+      );
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
-      const formData = new FormData(event.currentTarget);
-      await signIn("email-otp", formData);
-      setStep({ email: formData.get("email") as string });
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Email sign-in error:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to send verification code. Please try again.",
-      );
+      await sendCode(address);
+      setEmail(address);
+      setStep("code");
+    } catch (caught) {
+      setError(readableAuthError(caught));
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOtpSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCodeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      const formData = new FormData(event.currentTarget);
-      await signIn("email-otp", formData);
-
-      console.log("signed in");
-
-      navigate(redirect);
-    } catch (error) {
-      console.error("OTP verification error:", error);
-
-      setError("The verification code you entered is incorrect.");
-      setIsLoading(false);
-
-      setOtp("");
-    }
-  };
-
-  const handleGuestLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      console.log("Attempting anonymous sign in...");
-      await signIn("anonymous");
-      console.log("Anonymous sign in successful");
-      navigate(redirect);
-    } catch (error) {
-      console.error("Guest login error:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
-      setError(`Failed to sign in as guest: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const data = new FormData();
+      data.set("email", email);
+      data.set("code", code.trim());
+      await signIn("email-otp", data);
+      // Routing happens in the effect above once the session is live.
+    } catch (caught) {
+      setError(readableAuthError(caught));
+      setCode("");
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-
-      
-      {/* Auth Content */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex items-center justify-center h-full flex-col">
-        <Card className="min-w-[350px] pb-0 border shadow-md">
-          {step === "signIn" ? (
-            <>
-              <CardHeader className="text-center">
-              <div className="flex justify-center">
-                    <img
-                      src={logo}
-                      alt="Lock Icon"
-                      width={64}
-                      height={64}
-                      className="rounded-lg mb-4 mt-4 cursor-pointer"
-                      onClick={() => navigate("/")}
-                    />
-                  </div>
-                <CardTitle className="text-xl">Get Started</CardTitle>
-                <CardDescription>
-                  Enter your email to log in or sign up
-                </CardDescription>
-              </CardHeader>
-              <form onSubmit={handleEmailSubmit}>
-                <CardContent>
-                  
-                  <div className="relative flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        name="email"
-                        placeholder="name@example.com"
-                        type="email"
-                        className="pl-9"
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      variant="outline"
-                      size="icon"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <ArrowRight className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                  {error && (
-                    <p className="mt-2 text-sm text-red-500">{error}</p>
-                  )}
-                  
-                  <div className="mt-4">
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Or
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full mt-4"
-                      onClick={handleGuestLogin}
-                      disabled={isLoading}
-                    >
-                      <UserX className="mr-2 h-4 w-4" />
-                      Continue as Guest
-                    </Button>
-                  </div>
-                </CardContent>
-              </form>
-            </>
-          ) : (
-            <>
-              <CardHeader className="text-center mt-4">
-                <CardTitle>Check your email</CardTitle>
-                <CardDescription>
-                  We've sent a code to {step.email}
-                </CardDescription>
-              </CardHeader>
-              <form onSubmit={handleOtpSubmit}>
-                <CardContent className="pb-4">
-                  <input type="hidden" name="email" value={step.email} />
-                  <input type="hidden" name="code" value={otp} />
-
-                  <div className="flex justify-center">
-                    <InputOTP
-                      value={otp}
-                      onChange={setOtp}
-                      maxLength={6}
-                      disabled={isLoading}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && otp.length === 6 && !isLoading) {
-                          // Find the closest form and submit it
-                          const form = (e.target as HTMLElement).closest("form");
-                          if (form) {
-                            form.requestSubmit();
-                          }
-                        }
-                      }}
-                    >
-                      <InputOTPGroup>
-                        {Array.from({ length: 6 }).map((_, index) => (
-                          <InputOTPSlot key={index} index={index} />
-                        ))}
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  {error && (
-                    <p className="mt-2 text-sm text-red-500 text-center">
-                      {error}
-                    </p>
-                  )}
-                  <p className="text-sm text-muted-foreground text-center mt-4">
-                    Didn't receive a code?{" "}
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto"
-                      onClick={() => setStep("signIn")}
-                    >
-                      Try again
-                    </Button>
-                  </p>
-                </CardContent>
-                <CardFooter className="flex-col gap-2">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isLoading || otp.length !== 6}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>
-                        Verify code
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setStep("signIn")}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    Use different email
-                  </Button>
-                </CardFooter>
-              </form>
-            </>
-          )}
-
-          <div className="py-4 px-6 text-xs text-center text-muted-foreground bg-muted border-t rounded-b-lg">
-            Secured by{" "}
-            <a
-              href="https://freebuff.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-primary transition-colors"
-            >
-              freebuff.com
-            </a>
+    <AppShell>
+      <div className="cm-auth">
+        <aside className="cm-auth__side">
+          <div className="cm-stack" style={{ gap: 20 }}>
+            <p className="cm-eyebrow">
+              {CAMPUS_SHORT} student marketplace
+              <span className="cm-eyebrow__rule" />
+            </p>
+            <h1 className="cm-display cm-h2">
+              One account. One campus. No strangers.
+            </h1>
+            <p className="cm-lede">
+              {CAMPUS_NAME} only accepts addresses issued by the institute, so
+              every listing, service and message comes from a real{" "}
+              {CAMPUS_SHORT} student.
+            </p>
           </div>
-        </Card>
+
+          <ul className="cm-checklist">
+            <li>
+              <span className="cm-checklist__num">01</span>
+              <span>
+                Sign in with your @{CAMPUS_DOMAIN} email — new students get an
+                account automatically.
+              </span>
+            </li>
+            <li>
+              <span className="cm-checklist__num">02</span>
+              <span>
+                Confirm the six-digit code we email you. That is the whole
+                verification step.
+              </span>
+            </li>
+            <li>
+              <span className="cm-checklist__num">03</span>
+              <span>
+                Add your name, branch and year so classmates know who they are
+                dealing with.
+              </span>
+            </li>
+            <li style={{ borderBottom: "none", paddingBottom: 0 }}>
+              <span className="cm-checklist__num">04</span>
+              <span>
+                Post, message and trade. Your email address is never shown.
+              </span>
+            </li>
+          </ul>
+
+          <p className="cm-note">
+            Run by one student, for one campus. No fees, no shipping, no
+            middlemen.
+          </p>
+        </aside>
+
+        <div className="cm-auth__form-wrap">
+          <div className="cm-auth__form">
+            {step === "email" ? (
+              <form onSubmit={handleEmailSubmit} className="cm-stack" style={{ gap: 20 }}>
+                <div>
+                  <p className="cm-eyebrow">
+                    Step 1 of 2
+                    <span className="cm-eyebrow__rule" />
+                  </p>
+                  <h2
+                    className="cm-display cm-h3"
+                    style={{ marginTop: 14, marginBottom: 10 }}
+                  >
+                    Sign in or register
+                  </h2>
+                  <p className="cm-note">
+                    We will email you a six-digit code. There is no password to
+                    remember.
+                  </p>
+                </div>
+
+                <label className="cm-field">
+                  <span className="cm-label">Institutional email</span>
+                  <input
+                    className="cm-input"
+                    type="email"
+                    name="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setError(null);
+                    }}
+                    placeholder={CAMPUS_EMAIL_HINT}
+                    autoComplete="email"
+                    inputMode="email"
+                    required
+                  />
+                  <span className="cm-field__hint">
+                    Must end in @{CAMPUS_DOMAIN}. Nothing else gets through.
+                  </span>
+                </label>
+
+                {error && <Notice tone="error">{error}</Notice>}
+
+                <button
+                  type="submit"
+                  className="cm-btn cm-btn--accent cm-btn--block"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending your code…" : "Send me a code"}
+                </button>
+
+                <p className="cm-note">
+                  By continuing you agree to keep deals on campus and to treat
+                  other students the way you would want to be treated.
+                </p>
+              </form>
+            ) : (
+              <form onSubmit={handleCodeSubmit} className="cm-stack" style={{ gap: 20 }}>
+                <div>
+                  <p className="cm-eyebrow">
+                    Step 2 of 2
+                    <span className="cm-eyebrow__rule" />
+                  </p>
+                  <h2
+                    className="cm-display cm-h3"
+                    style={{ marginTop: 14, marginBottom: 10 }}
+                  >
+                    Check your inbox
+                  </h2>
+                  <p className="cm-note">
+                    We sent a six-digit code to{" "}
+                    <strong style={{ color: "var(--cm-ink)" }}>{email}</strong>.
+                    It expires in fifteen minutes.
+                  </p>
+                </div>
+
+                <label className="cm-field">
+                  <span className="cm-label">Six-digit code</span>
+                  <input
+                    className="cm-otp-single"
+                    value={code}
+                    onChange={(event) => {
+                      setCode(event.target.value.replace(/\D/g, "").slice(0, 6));
+                      setError(null);
+                    }}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    placeholder="000000"
+                    required
+                  />
+                </label>
+
+                {error && <Notice tone="error">{error}</Notice>}
+
+                <button
+                  type="submit"
+                  className="cm-btn cm-btn--accent cm-btn--block"
+                  disabled={isLoading || code.length !== 6}
+                >
+                  {isLoading ? "Verifying…" : "Verify and continue"}
+                </button>
+
+                <div className="cm-actions">
+                  <button
+                    type="button"
+                    className="cm-textlink"
+                    disabled={isLoading}
+                    onClick={async () => {
+                      setIsLoading(true);
+                      setError(null);
+                      try {
+                        await sendCode(email);
+                      } catch (caught) {
+                        setError(readableAuthError(caught));
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    Send a new code
+                  </button>
+                  <button
+                    type="button"
+                    className="cm-textlink"
+                    onClick={() => {
+                      setStep("email");
+                      setCode("");
+                      setError(null);
+                    }}
+                  >
+                    Use a different email
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }
 
 export default function AuthPage(props: AuthProps) {
-  return (
-    <Suspense>
-      <Auth {...props} />
-    </Suspense>
-  );
+  return <Auth {...props} />;
 }
