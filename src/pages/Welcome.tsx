@@ -18,6 +18,7 @@ function ProfileForm({
     year: string;
     hostel: string;
     bio: string;
+    phone: string;
   };
   isReturning: boolean;
 }) {
@@ -31,6 +32,7 @@ function ProfileForm({
   const [year, setYear] = useState(initial.year);
   const [hostel, setHostel] = useState(initial.hostel);
   const [bio, setBio] = useState(initial.bio);
+  const [phone, setPhone] = useState(initial.phone);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,7 @@ function ProfileForm({
         year,
         hostel: hostel || undefined,
         bio: bio || undefined,
+        phone: phone.trim() || "",
       });
       navigate(returnTo.startsWith("/") ? returnTo : "/market");
     } catch (caught) {
@@ -159,6 +162,22 @@ function ProfileForm({
               maxLength={280}
             />
           </label>
+
+          <label className="cm-field cm-form-grid--full">
+            <span className="cm-label">Mobile number (optional)</span>
+            <input
+              className="cm-input"
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="98765 43210"
+              maxLength={16}
+            />
+            <span className="cm-field__hint">
+              Only used to text you when a buyer first messages one of your
+              posts. Never shown to anyone, and everything works without it.
+            </span>
+          </label>
         </div>
 
         {error && <Notice tone="error">{error}</Notice>}
@@ -210,6 +229,10 @@ function ProfileForm({
           <div className="cm-fact">
             <span>Never shown</span>
             <span className="cm-meta">Email, phone</span>
+          </div>
+          <div className="cm-fact">
+            <span>Text alerts</span>
+            <span className="cm-meta">{phone.trim() ? "On for new messages" : "Off"}</span>
           </div>
           <div className="cm-fact">
             <span>Where you trade</span>
@@ -264,6 +287,7 @@ export default function Welcome() {
               year: me.profile?.year ?? "",
               hostel: me.profile?.hostel ?? "",
               bio: me.profile?.bio ?? "",
+              phone: me.profile?.phone ?? "",
             }}
           />
         </div>
