@@ -458,7 +458,7 @@ export default function PostListing({ mode }: { mode: "create" | "edit" }) {
               </div>
 
               <div
-                className="cm-upload"
+                className={`cm-upload${dragging ? " cm-upload--active" : ""}`}
                 onDragOver={(event) => {
                   event.preventDefault();
                   setDragging(true);
@@ -469,11 +469,6 @@ export default function PostListing({ mode }: { mode: "create" | "edit" }) {
                   setDragging(false);
                   void handleFiles(event.dataTransfer.files);
                 }}
-                style={
-                  dragging
-                    ? { borderColor: "var(--cm-ink)", background: "var(--cm-surface)" }
-                    : undefined
-                }
               >
                 <div className="cm-upload__row">
                   <label className="cm-btn cm-btn--quiet cm-btn--sm">
@@ -564,11 +559,11 @@ export default function PostListing({ mode }: { mode: "create" | "edit" }) {
             <div className="cm-fact-list">
               <div className="cm-fact">
                 <span>Posting as</span>
-                <span className="cm-mono">{me?.name ?? "You"}</span>
+                <span className="cm-meta">{me?.name ?? "You"}</span>
               </div>
               <div className="cm-fact">
                 <span>Verification</span>
-                <span className="cm-mono">
+                <span className="cm-meta">
                   {me?.emailVerified ? "Verified student" : "Pending"}
                 </span>
               </div>

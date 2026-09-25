@@ -239,7 +239,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   </h2>
                   <p className="cm-note">
                     We sent a six-digit code to{" "}
-                    <strong style={{ color: "var(--cm-ink)" }}>{email}</strong>.
+                    <strong style={{ color: "var(--cm-blue-strong)" }}>{email}</strong>.
                     It expires in fifteen minutes.
                   </p>
                 </div>

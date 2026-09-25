@@ -164,7 +164,7 @@ export default function StudentProfile() {
               </div>
               <div className="cm-fact">
                 <span>Account</span>
-                <span className="cm-mono">
+                <span className="cm-meta">
                   {student.campusAccount ? "SSIPMT email" : "Verified email"}
                 </span>
               </div>

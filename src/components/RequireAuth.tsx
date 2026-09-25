@@ -83,19 +83,19 @@ export function RequireAuth({
           </div>
 
           <aside className="cm-panel">
-            <p className="cm-mono">Why signing in is required</p>
+            <p className="cm-meta">Why signing in is required</p>
             <div className="cm-fact-list" style={{ marginTop: 12 }}>
               <div className="cm-fact">
                 <span>Verified {CAMPUS_SHORT} students only</span>
-                <span className="cm-mono">01</span>
+                <span className="cm-meta">01</span>
               </div>
               <div className="cm-fact">
                 <span>No phone numbers shown publicly</span>
-                <span className="cm-mono">02</span>
+                <span className="cm-meta">02</span>
               </div>
               <div className="cm-fact">
                 <span>Deals happen on campus, in person</span>
-                <span className="cm-mono">03</span>
+                <span className="cm-meta">03</span>
               </div>
             </div>
           </aside>

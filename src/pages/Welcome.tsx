@@ -205,15 +205,15 @@ function ProfileForm({
         <div className="cm-fact-list">
           <div className="cm-fact">
             <span>Shown publicly</span>
-            <span className="cm-mono">Name, branch, year</span>
+            <span className="cm-meta">Name, branch, year</span>
           </div>
           <div className="cm-fact">
             <span>Never shown</span>
-            <span className="cm-mono">Email, phone</span>
+            <span className="cm-meta">Email, phone</span>
           </div>
           <div className="cm-fact">
             <span>Where you trade</span>
-            <span className="cm-mono">Anywhere on campus</span>
+            <span className="cm-meta">Anywhere on campus</span>
           </div>
         </div>
 

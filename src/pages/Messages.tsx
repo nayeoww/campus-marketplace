@@ -102,8 +102,8 @@ function ThreadView({ conversationId }: { conversationId: string }) {
       </div>
 
       {thread.listing && (
-        <div className="cm-thread__head" style={{ background: "var(--cm-paper-deep)" }}>
-          <span className="cm-mono">About</span>
+        <div className="cm-thread__head" style={{ background: "var(--cm-bg-tint)" }}>
+          <span className="cm-meta">About</span>
           <Link
             to={`/listing/${thread.listing._id}`}
             className="cm-card__title"
@@ -111,7 +111,7 @@ function ThreadView({ conversationId }: { conversationId: string }) {
           >
             {thread.listing.title}
           </Link>
-          <span className="cm-mono">{formatPrice(thread.listing.price)}</span>
+          <span className="cm-meta">{formatPrice(thread.listing.price)}</span>
         </div>
       )}
 

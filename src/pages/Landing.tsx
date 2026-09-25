@@ -167,7 +167,7 @@ export default function Landing() {
           {/* Vertical stack of real listings instead of an illustration. */}
           <aside className="cm-board" aria-label="Latest listings">
             <div className="cm-board__head">
-              <span className="cm-mono">
+              <span className="cm-meta">
                 {boardRows.length > 0 ? "Latest on campus" : "What gets posted"}
               </span>
               {boardRows.length > 0 ? (
@@ -176,7 +176,7 @@ export default function Landing() {
                   Live
                 </span>
               ) : (
-                <span className="cm-mono">Examples</span>
+                <span className="cm-meta">Examples</span>
               )}
             </div>
 
@@ -229,7 +229,7 @@ export default function Landing() {
             <div className="cm-board__foot">
               {boardRows.length > 0 ? (
                 <>
-                  <span className="cm-mono">
+                  <span className="cm-meta">
                     {stats?.listings ?? boardRows.length} live posts
                   </span>
                   <Link to="/market" className="cm-textlink">
@@ -238,7 +238,7 @@ export default function Landing() {
                 </>
               ) : (
                 <>
-                  <span className="cm-mono">Nothing posted yet</span>
+                  <span className="cm-meta">Nothing posted yet</span>
                   <Link to={postHref} className="cm-textlink">
                     Post the first listing
                   </Link>
@@ -445,7 +445,7 @@ export default function Landing() {
             <h2 className="cm-display cm-h2" style={{ marginTop: 18 }}>
               That calculator in your bag is somebody&apos;s first year.
             </h2>
-            <p className="cm-lede" style={{ color: "#c9c2b3", marginTop: 18 }}>
+            <p className="cm-lede cm-on-navy" style={{ marginTop: 18 }}>
               Post the things you have outgrown, the notes you typed yourself,
               or an hour of the help you are good at. Somebody two blocks away
               is looking for exactly that.
@@ -458,7 +458,7 @@ export default function Landing() {
             <Link to="/market" className="cm-btn cm-btn--quiet cm-btn--lg">
               Browse the marketplace
             </Link>
-            <p className="cm-mono" style={{ color: "#9e9583" }}>
+            <p className="cm-meta cm-on-navy">
               Registration limited to @{CAMPUS_DOMAIN} accounts
             </p>
           </div>

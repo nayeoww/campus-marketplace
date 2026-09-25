@@ -68,23 +68,23 @@ export function StudentGate({ children }: { children: ReactNode }) {
           </div>
 
           <aside className="cm-panel">
-            <p className="cm-mono">What everyone sees</p>
+            <p className="cm-meta">What everyone sees</p>
             <div className="cm-fact-list" style={{ marginTop: 12 }}>
               <div className="cm-fact">
                 <span>Your name</span>
-                <span className="cm-mono">Required</span>
+                <span className="cm-meta">Required</span>
               </div>
               <div className="cm-fact">
                 <span>Branch and year</span>
-                <span className="cm-mono">Required</span>
+                <span className="cm-meta">Required</span>
               </div>
               <div className="cm-fact">
                 <span>Hostel or day scholar</span>
-                <span className="cm-mono">Optional</span>
+                <span className="cm-meta">Optional</span>
               </div>
               <div className="cm-fact">
                 <span>Email address</span>
-                <span className="cm-mono">Never shown</span>
+                <span className="cm-meta">Never shown</span>
               </div>
             </div>
             <p className="cm-note" style={{ marginTop: 14 }}>

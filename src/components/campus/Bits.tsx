@@ -108,7 +108,7 @@ export function Plate({
   return (
     <div className={classes} aria-hidden="true">
       <div className="cm-plate__top">
-        <span className="cm-mono">{listing.category}</span>
+        <span className="cm-meta">{listing.category}</span>
         <span className="cm-plate__ref">{listingRef(listing._id)}</span>
       </div>
       <span className="cm-plate__mark">{meta.mark}</span>
