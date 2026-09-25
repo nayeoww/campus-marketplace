@@ -112,7 +112,7 @@ export default function Browse({ kind }: { kind: ListingKind }) {
 
         <div className="cm-toolbar">
           <label className="cm-search">
-            <span className="cm-mono">Search</span>
+            <span className="cm-meta">Search</span>
             <input
               type="search"
               value={search}
@@ -128,12 +128,11 @@ export default function Browse({ kind }: { kind: ListingKind }) {
             />
           </label>
 
-          <label className="cm-search" style={{ flex: "0 0 200px" }}>
-            <span className="cm-mono">Sort</span>
+          <label className="cm-search cm-search--sort">
+            <span className="cm-meta">Sort</span>
             <span className="cm-select-wrap" style={{ width: "100%" }}>
               <select
                 className="cm-select"
-                style={{ border: 0, height: 38 }}
                 value={sort}
                 onChange={(event) => updateParams({ sort: event.target.value })}
                 aria-label="Sort listings"
@@ -190,7 +189,7 @@ export default function Browse({ kind }: { kind: ListingKind }) {
           </div>
 
           <div className="cm-panel">
-            <p className="cm-mono">Keep it on campus</p>
+            <p className="cm-meta">Keep it on campus</p>
             <p className="cm-note" style={{ marginTop: 10 }}>
               Agree on a place inside the campus, check what you are buying
               before you pay, and never send money in advance to someone you
@@ -205,7 +204,7 @@ export default function Browse({ kind }: { kind: ListingKind }) {
           ) : listings.length > 0 ? (
             <>
               <div className="cm-section-head">
-                <p className="cm-mono">
+                <p className="cm-meta">
                   {category || "Everything"} · {listings.length}{" "}
                   {listings.length === 1 ? "post" : "posts"}
                 </p>

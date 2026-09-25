@@ -239,7 +239,7 @@ export default function ListingDetail() {
             </div>
           )}
 
-          <div className="cm-band--tight" style={{ borderTop: "1px solid var(--cm-rule)", marginTop: 10 }}>
+          <div className="cm-panel" style={{ marginTop: 18 }}>
             <p className="cm-eyebrow" style={{ marginBottom: 14 }}>
               Description
               <span className="cm-eyebrow__rule" />
@@ -265,7 +265,7 @@ export default function ListingDetail() {
             <h1 className="cm-display cm-detail__title">{listing.title}</h1>
             <p className="cm-detail__price">
               {formatPrice(listing.price)}
-              {listing.priceNote && <small className="cm-mono">{listing.priceNote}</small>}
+              {listing.priceNote && <small className="cm-meta">{listing.priceNote}</small>}
             </p>
             <div className="cm-actions">
               <span className="cm-badge cm-badge--accent">{meta.label}</span>
@@ -285,7 +285,7 @@ export default function ListingDetail() {
 
           {listing.isOwner ? (
             <div className="cm-owner-bar">
-              <span className="cm-mono">Your post</span>
+              <span className="cm-meta">Your post</span>
               <div className="cm-actions">
                 <Link
                   to={`/listing/${listing._id}/edit`}

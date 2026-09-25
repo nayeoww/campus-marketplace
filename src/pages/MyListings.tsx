@@ -58,9 +58,9 @@ function Row({
         </div>
       </div>
 
-      <span className="cm-mono">{formatPrice(listing.price)}</span>
-      <span className="cm-mono">{listing.views} views</span>
-      <span className="cm-mono">{relativeTime(listing.createdAt)}</span>
+      <span className="cm-meta">{formatPrice(listing.price)}</span>
+      <span className="cm-meta">{listing.views} views</span>
+      <span className="cm-meta">{relativeTime(listing.createdAt)}</span>
 
       <div className="cm-table__actions">
         <Link to={`/listing/${listing._id}/edit`} className="cm-textlink">
@@ -269,7 +269,7 @@ export default function MyListings() {
                 <div className="cm-section-head">
                   <h2 className="cm-display cm-h3">
                     {statusLabel(group)}{" "}
-                    <span className="cm-mono">
+                    <span className="cm-meta">
                       {rows.length} {rows.length === 1 ? "post" : "posts"}
                     </span>
                   </h2>

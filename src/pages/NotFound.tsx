@@ -30,7 +30,7 @@ export default function NotFound() {
         </div>
 
         <aside className="cm-panel">
-          <p className="cm-mono">Try one of these instead</p>
+          <p className="cm-meta">Try one of these instead</p>
           <div className="cm-rail-group" style={{ marginTop: 12 }}>
             <Link to="/market" className="cm-rail-link">
               <span>Buy &amp; sell</span>
