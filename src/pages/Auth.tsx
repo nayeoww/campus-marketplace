@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/campus/AppShell";
 import { Notice } from "@/components/campus/Bits";
+import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { useCampusUser } from "@/hooks/use-campus-user";
 import {
@@ -9,6 +10,7 @@ import {
   CAMPUS_SHORT,
   isCampusEmail,
 } from "@/lib/campus";
+import { useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
@@ -28,6 +30,9 @@ function readableAuthError(error: unknown) {
   const raw = error instanceof Error ? error.message : String(error);
   if (raw.toLowerCase().includes("resend")) {
     return "CampusMart cannot send mail yet — no mail provider is connected. Add RESEND_API_KEY in the project's API keys, then try again.";
+  }
+  if (raw.toLowerCase().includes("mail provider")) {
+    return "That email did not go out. If mail delivery is not set up yet, use the code shown on this screen.";
   }
   if (raw.toLowerCase().includes("ssipmt")) {
     return `CampusMart runs on @${CAMPUS_DOMAIN} addresses only. Use the email address the institute gave you.`;
@@ -57,6 +62,12 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Only fills in while the deployment has no working mail provider.
+  const pending = useQuery(
+    api.otp.pendingCode,
+    email ? { email } : "skip",
+  );
 
   // Once the session lands, students without a profile finish setup first.
   useEffect(() => {
@@ -92,6 +103,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       setEmail(address);
       setStep("code");
     } catch (caught) {
+      // A mail problem is not a dead end: the code still exists in Convex, so
+      // move on to the code step where it can be shown and entered by hand.
+      const raw = caught instanceof Error ? caught.message : String(caught);
+      if (/mail provider|resend/i.test(raw)) {
+        setEmail(address);
+        setStep("code");
+      }
       setError(readableAuthError(caught));
     } finally {
       setIsLoading(false);
@@ -246,6 +264,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     It expires in fifteen minutes.
                   </p>
                 </div>
+
+                {pending?.code && (
+                  <Notice tone="warn">
+                    Email delivery is not set up on this deployment, so here is
+                    your code instead: <strong>{pending.code}</strong>
+                  </Notice>
+                )}
 
                 <label className="cm-field">
                   <span className="cm-label">Six-digit code</span>

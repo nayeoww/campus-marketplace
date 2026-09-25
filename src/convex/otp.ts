@@ -209,6 +209,36 @@ export const confirmCode = mutation({
   },
 });
 
+/**
+ * Development escape hatch. When the mail provider is not set up yet, the code
+ * would otherwise vanish into a failed request, so /auth can show it instead.
+ * Off unless OTP_SHOW_CODE=1 — and it only ever answers once delivery has
+ * actually failed, so a working mail setup never exposes anything.
+ */
+export const pendingCode = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    if (process.env.OTP_SHOW_CODE !== "1") return { code: null };
+
+    const email = normalize(args.email);
+    if (!isCampusEmail(email)) return { code: null };
+
+    const rows = await ctx.db
+      .query("otpCodes")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .order("desc")
+      .take(3);
+
+    const now = Date.now();
+    const active = rows.find((row) => !row.consumedAt && row.expiresAt > now);
+    const lastIssued = rows[0];
+
+    if (!active || !lastIssued || lastIssued.deliveredAt) return { code: null };
+
+    return { code: active.code };
+  },
+});
+
 /** Drives the "code sent / resend in 30s / attempts left" state on /auth. */
 export const status = query({
   args: { email: v.string() },
