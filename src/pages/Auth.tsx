@@ -28,12 +28,6 @@ function resolveRedirectAfterAuth(returnTo: string | null, fallback = "/market")
 /** Convex wraps thrown errors in deployment noise; show the human sentence. */
 function readableAuthError(error: unknown) {
   const raw = error instanceof Error ? error.message : String(error);
-  if (raw.toLowerCase().includes("resend")) {
-    return "CampusMart cannot send mail yet — no mail provider is connected. Add RESEND_API_KEY in the project's API keys, then try again.";
-  }
-  if (raw.toLowerCase().includes("mail provider")) {
-    return "That email did not go out. If mail delivery is not set up yet, use the code shown on this screen.";
-  }
   if (raw.toLowerCase().includes("ssipmt")) {
     return `CampusMart runs on @${CAMPUS_DOMAIN} addresses only. Use the email address the institute gave you.`;
   }
@@ -103,13 +97,6 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       setEmail(address);
       setStep("code");
     } catch (caught) {
-      // A mail problem is not a dead end: the code still exists in Convex, so
-      // move on to the code step where it can be shown and entered by hand.
-      const raw = caught instanceof Error ? caught.message : String(caught);
-      if (/mail provider|resend/i.test(raw)) {
-        setEmail(address);
-        setStep("code");
-      }
       setError(readableAuthError(caught));
     } finally {
       setIsLoading(false);
@@ -163,8 +150,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             <li>
               <span className="cm-checklist__num">02</span>
               <span>
-                Confirm the six-digit code we email you. That is the whole
-                verification step.
+                Confirm the six-digit code Convex generates for you. That is
+                the whole verification step.
               </span>
             </li>
             <li>
@@ -204,8 +191,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     Sign in or register
                   </h2>
                   <p className="cm-note">
-                    We will email you a six-digit code. There is no password to
-                    remember.
+                    Convex generates a six-digit code for your address and shows
+                    it on the next screen. There is no password to remember.
                   </p>
                 </div>
 
@@ -256,10 +243,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     className="cm-display cm-h3"
                     style={{ marginTop: 14, marginBottom: 10 }}
                   >
-                    Check your inbox
+                    Enter your code
                   </h2>
                   <p className="cm-note">
-                    We sent a six-digit code to{" "}
+                    This code is for{" "}
                     <strong style={{ color: "var(--cm-accent-strong)" }}>{email}</strong>.
                     It expires in fifteen minutes.
                   </p>
@@ -267,8 +254,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
                 {pending?.code && (
                   <Notice tone="warn">
-                    Email delivery is not set up on this deployment, so here is
-                    your code instead: <strong>{pending.code}</strong>
+                    CampusMart does not send email yet, so your code is shown
+                    here: <strong>{pending.code}</strong>
                   </Notice>
                 )}
 
