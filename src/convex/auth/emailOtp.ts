@@ -1,51 +1,46 @@
-import { Email } from "@convex-dev/auth/providers/Email";
-import type { ActionCtx } from "../_generated/server";
-import { RandomReader, generateRandomString } from "@oslojs/crypto/random";
+import { ConvexCredentials } from "@convex-dev/auth/providers/ConvexCredentials";
+import type { ConvexCredentialsConfig } from "@convex-dev/auth/server";
+import type { Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
+import { CAMPUS_DOMAIN, isCampusEmail } from "../helpers";
 
 /**
- * The provider is only a bridge. It generates a six digit code and hands it to
- * `otp.issue` (rate limit + storage) — a Convex function. Nothing about the code
- * lifecycle lives outside the deployment, and no mail transport is involved:
- * the sign-in screen reads the code back from `otp.pendingCode`.
+ * Email sign-in for CampusMart, verified by MojoAuth.
  *
- * The library passes its action context as a second argument to
- * `sendVerificationRequest` even though its typings omit it (the library's own
- * source carries a ts-expect-error for this), so it stays optional here.
+ * The student types the six-digit code MojoAuth emailed them; this provider
+ * checks it against MojoAuth and only then hands Convex Auth a user id, which
+ * creates the session. The name `emailOtp` is kept because the client signs in
+ * with `signIn("email-otp", ...)`.
  */
-type OtpActionCtx = Pick<ActionCtx, "runMutation">;
-
-export const emailOtp = Email({
+export const emailOtp: ConvexCredentialsConfig = ConvexCredentials({
   id: "email-otp",
-  maxAge: 60 * 15, // 15 minutes
-  async generateVerificationToken() {
-    const random: RandomReader = {
-      read(bytes: Uint8Array) {
-        crypto.getRandomValues(bytes);
-      },
-    };
-    const alphabet = "0123456789";
-    return generateRandomString(random, alphabet, 6);
-  },
-  async sendVerificationRequest({
-    identifier: email,
-    token,
-  }: {
-    identifier: string;
-    token: string;
-  }, context?: unknown) {
-    const ctx = context as OtpActionCtx | undefined;
-    if (!ctx?.runMutation) {
-      throw new Error("Sign-in is not available right now. Try again in a moment.");
+  authorize: async (credentials, ctx): Promise<{ userId: Id<"users"> } | null> => {
+    const email = String(credentials.email ?? "").trim().toLowerCase();
+    const otp = String(credentials.code ?? credentials.otp ?? "").trim();
+
+    if (!isCampusEmail(email)) {
+      throw new Error(
+        `CampusMart is open to SSIPMT students only. Use your @${CAMPUS_DOMAIN} email address.`,
+      );
+    }
+    if (!/^\d{6}$/.test(otp)) {
+      throw new Error("Enter the six digits from the email we sent you.");
     }
 
-    const issued = await ctx.runMutation(internal.otp.issue, {
+    const result = await ctx.runAction(internal.mojoOtp.verify, { email, otp });
+    if (!result.authenticated) {
+      // Wrong or expired: charge the attempt so repeated guessing locks out.
+      await ctx.runMutation(internal.mojoOtp.bumpAttempts, { email });
+      throw new Error(
+        "That code did not match. Check the six digits and try again, or send a new code.",
+      );
+    }
+
+    const { userId } = await ctx.runMutation(internal.mojoOtp.findOrCreateUser, {
       email,
-      code: token,
     });
+    await ctx.runMutation(internal.mojoOtp.consume, { email });
 
-    if (!issued.allowed) {
-      throw new Error(issued.message);
-    }
+    return { userId };
   },
 });
