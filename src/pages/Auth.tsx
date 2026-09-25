@@ -26,6 +26,9 @@ function resolveRedirectAfterAuth(returnTo: string | null, fallback = "/market")
 /** Convex wraps thrown errors in deployment noise; show the human sentence. */
 function readableAuthError(error: unknown) {
   const raw = error instanceof Error ? error.message : String(error);
+  if (raw.toLowerCase().includes("resend")) {
+    return "CampusMart cannot send mail yet — no mail provider is connected. Add RESEND_API_KEY in the project's API keys, then try again.";
+  }
   if (raw.toLowerCase().includes("ssipmt")) {
     return `CampusMart runs on @${CAMPUS_DOMAIN} addresses only. Use the email address the institute gave you.`;
   }
@@ -239,7 +242,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   </h2>
                   <p className="cm-note">
                     We sent a six-digit code to{" "}
-                    <strong style={{ color: "var(--cm-blue-strong)" }}>{email}</strong>.
+                    <strong style={{ color: "var(--cm-accent-strong)" }}>{email}</strong>.
                     It expires in fifteen minutes.
                   </p>
                 </div>

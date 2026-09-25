@@ -1242,17 +1242,11 @@ body {
 }
 
 .cm-hero__headline {
-  margin-top: 24px;
-  max-width: 15ch;
-}
-
-.cm-hero__headline span {
-  display: block;
-}
-
-.cm-hero__headline em {
-  font-style: normal;
-  color: var(--cm-accent);
+  margin-top: 22px;
+  max-width: 20ch;
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 }
 
 .cm-hero__lede {
