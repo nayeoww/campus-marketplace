@@ -20,12 +20,10 @@ export type Role = Infer<typeof roleValidator>;
  * CampusMart listing kinds:
  *  - `item`    -> buy & sell (textbooks, calculators, hostel gear, ...)
  *  - `service` -> freelance work offered by a student
- *  - `gig`     -> a short one-off task posted by a student
  */
 export const listingKindValidator = v.union(
   v.literal("item"),
   v.literal("service"),
-  v.literal("gig"),
 );
 export type ListingKind = Infer<typeof listingKindValidator>;
 
@@ -68,7 +66,7 @@ const schema = defineSchema(
       updatedAt: v.number(),
     }).index("by_user", ["userId"]),
 
-    /** Everything posted by students: items for sale, services and gigs. */
+    /** Everything posted by students: items for sale and services. */
     listings: defineTable({
       kind: listingKindValidator,
       title: v.string(),

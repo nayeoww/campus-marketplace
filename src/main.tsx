@@ -147,7 +147,6 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/auth" element={<AuthPage redirectAfterAuth="/market" />} />
               <Route path="/market" element={<Browse kind="item" />} />
               <Route path="/services" element={<Browse kind="service" />} />
-              <Route path="/gigs" element={<Browse kind="gig" />} />
               <Route path="/listing/:id" element={<ListingDetail />} />
               <Route path="/students/:id" element={<StudentProfile />} />
 

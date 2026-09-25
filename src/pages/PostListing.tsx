@@ -19,7 +19,7 @@ import { toast } from "sonner";
 const MAX_IMAGES = 6;
 const MAX_FILE_MB = 6;
 
-const KIND_ORDER: ListingKind[] = ["item", "service", "gig"];
+const KIND_ORDER: ListingKind[] = ["item", "service"];
 
 type FieldCopy = {
   priceLabel: string;
@@ -51,16 +51,6 @@ const FIELD_COPY: Record<ListingKind, FieldCopy> = {
     titlePlaceholder: "LaTeX typesetting for seminar reports",
     descriptionPlaceholder:
       "What exactly you will deliver, what you need from the client, and what your price covers. Be specific about turnaround.",
-  },
-  gig: {
-    priceLabel: "What you will pay (₹)",
-    priceNotePlaceholder: "total budget, or per hour…",
-    turnaroundLabel: "When do you need it?",
-    turnaroundPlaceholder: "By Friday evening",
-    locationLabel: "Where does it happen?",
-    titlePlaceholder: "Print and spiral-bind a 90-page project report",
-    descriptionPlaceholder:
-      "What needs doing, where it happens, when you need it finished, and anything the other student should bring along.",
   },
 };
 
