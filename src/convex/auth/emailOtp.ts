@@ -1,12 +1,22 @@
 import { Email } from "@convex-dev/auth/providers/Email";
-import axios from "axios";
+import type { ActionCtx } from "../_generated/server";
 import { RandomReader, generateRandomString } from "@oslojs/crypto/random";
-import { CAMPUS_DOMAIN, isCampusEmail } from "../helpers";
+import { internal } from "../_generated/api";
+
+/**
+ * The provider is only a bridge. It generates a six digit code and hands it to
+ * `otp.issue` (rate limit + storage) and `otp.deliver` (email) — both Convex
+ * functions. Nothing about the code lifecycle lives outside the deployment.
+ *
+ * The library passes its action context as a second argument to
+ * `sendVerificationRequest` even though its typings omit it (the library's own
+ * source carries a ts-expect-error for this), so it stays optional here.
+ */
+type OtpActionCtx = Pick<ActionCtx, "runMutation" | "runAction">;
 
 export const emailOtp = Email({
   id: "email-otp",
   maxAge: 60 * 15, // 15 minutes
-  // This function can be asynchronous
   async generateVerificationToken() {
     const random: RandomReader = {
       read(bytes: Uint8Array) {
@@ -16,31 +26,31 @@ export const emailOtp = Email({
     const alphabet = "0123456789";
     return generateRandomString(random, alphabet, 6);
   },
-  async sendVerificationRequest({ identifier: email, token }) {
-    // CampusMart is a closed campus marketplace: no code is ever sent to an
-    // address outside the SSIPMT domain, so an outside account cannot exist.
-    if (!isCampusEmail(email)) {
-      throw new Error(
-        `CampusMart is open to SSIPMT students only. Register with your @${CAMPUS_DOMAIN} email address.`,
-      );
+  async sendVerificationRequest({
+    identifier: email,
+    token,
+  }: {
+    identifier: string;
+    token: string;
+  }, context?: unknown) {
+    const ctx = context as OtpActionCtx | undefined;
+    if (!ctx?.runMutation || !ctx.runAction) {
+      throw new Error("Sign-in is not available right now. Try again in a moment.");
     }
 
-    try {
-      await axios.post(
-        "https://auth.freebuff.app/send_otp",
-        {
-          to: email,
-          otp: token,
-          appName: process.env.VLY_APP_NAME || "CampusMart",
-        },
-        {
-          headers: {
-            "x-api-key": "fb_email_2crN1hqIArZP2bEfvjp5Qik4",
-          },
-        },
-      );
-    } catch (error) {
-      throw new Error(JSON.stringify(error));
+    const issued = await ctx.runMutation(internal.otp.issue, {
+      email,
+      code: token,
+    });
+
+    if (!issued.allowed) {
+      throw new Error(issued.message);
     }
+
+    await ctx.runAction(internal.otp.deliver, {
+      id: issued.id,
+      email,
+      code: token,
+    });
   },
 });
