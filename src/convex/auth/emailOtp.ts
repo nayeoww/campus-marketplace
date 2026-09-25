@@ -47,6 +47,10 @@ export const emailOtp = Email({
       throw new Error(issued.message);
     }
 
+    if (issued.id === undefined) {
+      throw new Error("Sign-in is not available right now. Try again in a moment.");
+    }
+
     await ctx.runAction(internal.otp.deliver, {
       id: issued.id,
       email,

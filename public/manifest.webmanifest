@@ -4,8 +4,8 @@
   "description": "The private marketplace where SSIPMT students buy and sell, offer services and post small gigs.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6f3ec",
-  "theme_color": "#191713",
+  "background_color": "#e7ebf9",
+  "theme_color": "#0b1b4a",
   "icons": [
     {
       "src": "/logo.svg",
