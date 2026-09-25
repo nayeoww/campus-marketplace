@@ -10,7 +10,7 @@ import {
   CAMPUS_SHORT,
   isCampusEmail,
 } from "@/lib/campus";
-import { useQuery } from "convex/react";
+import { useAction } from "convex/react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
@@ -45,6 +45,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isAuthenticated, signIn } = useAuth();
   const { me } = useCampusUser();
   const navigate = useNavigate();
+  const requestOtp = useAction(api.mojoOtp.request);
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
     searchParams.get("returnTo"),
@@ -57,12 +58,6 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Only fills in while the deployment has no working mail provider.
-  const pending = useQuery(
-    api.otp.pendingCode,
-    email ? { email } : "skip",
-  );
-
   // Once the session lands, students without a profile finish setup first.
   useEffect(() => {
     if (!isAuthenticated || me === undefined) return;
@@ -74,9 +69,9 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   }, [isAuthenticated, me, navigate, redirect]);
 
   const sendCode = async (address: string) => {
-    const data = new FormData();
-    data.set("email", address);
-    await signIn("email-otp", data);
+    // Convex applies the campus-domain gate, cooldowns and caps; MojoAuth
+    // generates the code and emails it. No session is created by this call.
+    await requestOtp({ email: address });
   };
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -150,8 +145,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             <li>
               <span className="cm-checklist__num">02</span>
               <span>
-                Confirm the six-digit code Convex generates for you. That is
-                the whole verification step.
+                Enter the six-digit code we email you. It is the whole
+                verification step.
               </span>
             </li>
             <li>
@@ -191,8 +186,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     Sign in or register
                   </h2>
                   <p className="cm-note">
-                    Convex generates a six-digit code for your address and shows
-                    it on the next screen. There is no password to remember.
+                    We email a six-digit code to your institute address. There
+                    is no password to remember.
                   </p>
                 </div>
 
@@ -243,21 +238,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     className="cm-display cm-h3"
                     style={{ marginTop: 14, marginBottom: 10 }}
                   >
-                    Enter your code
+                    Check your inbox
                   </h2>
                   <p className="cm-note">
-                    This code is for{" "}
+                    We emailed a six-digit code to{" "}
                     <strong style={{ color: "var(--cm-accent-strong)" }}>{email}</strong>.
-                    It expires in fifteen minutes.
+                    It stays valid for a few minutes.
                   </p>
                 </div>
-
-                {pending?.code && (
-                  <Notice tone="warn">
-                    CampusMart does not send email yet, so your code is shown
-                    here: <strong>{pending.code}</strong>
-                  </Notice>
-                )}
 
                 <label className="cm-field">
                   <span className="cm-label">Six-digit code</span>
