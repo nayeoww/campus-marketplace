@@ -94,13 +94,14 @@ export const issue = internalMutation({
 export const deliver = internalAction({
   args: { id: v.id("otpCodes"), email: v.string(), code: v.string() },
   handler: async (ctx, args) => {
-    const apiKey = process.env.RESEND_API_KEY;
+    // Accepted under either name so the deployment's key is picked up as-is.
+    const apiKey = process.env.RESEND_API_KEY ?? process.env.RESEND_API;
 
     // Until a mail provider is connected the code is only written to the
     // Convex logs, so a fresh deployment is never a locked door.
     if (!apiKey) {
       console.warn(
-        `[CampusMart] No RESEND_API_KEY is set. Sign-in code for ${args.email} is ${args.code}.`,
+        `[CampusMart] No Resend key is set. Sign-in code for ${args.email} is ${args.code}.`,
       );
       await ctx.runMutation(internal.otp.markDelivered, {
         id: args.id,
