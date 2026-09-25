@@ -62,6 +62,8 @@ const schema = defineSchema(
       year: v.string(),
       hostel: v.optional(v.string()),
       bio: v.optional(v.string()),
+      // Private. Only ever used to text the student; never shown to others.
+      phone: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     }).index("by_user", ["userId"]),

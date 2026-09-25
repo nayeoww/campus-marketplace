@@ -5,6 +5,28 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 /** The only email domain allowed to register on CampusMart. */
 export const CAMPUS_DOMAIN = "ssipmt.com";
 
+/**
+ * India-only normalisation to E.164 (+91…), the form SMS providers expect.
+ * Strips spaces, dashes and brackets, drops a leading 00 or 0, and prefixes
+ * 91 when the student typed a 10-digit local number.
+ */
+export function toE164(raw: string): string | null {
+  const digits = raw.replace(/[\s().-]/g, "");
+  if (!/^\+?\d{10,13}$/.test(digits)) return null;
+
+  let body = digits.replace(/^\+/, "");
+  if (body.startsWith("00")) body = body.slice(2);
+  if (body.length === 10) {
+    body = `91${body}`;
+  } else if (body.startsWith("0") && body.length === 11) {
+    body = `91${body.slice(1)}`;
+  }
+  // Anything else already carries the 91 country code.
+
+  if (!/^91[6-9]\d{9}$/.test(body)) return null;
+  return `+${body}`;
+}
+
 type Ctx = QueryCtx | MutationCtx;
 
 export function isCampusEmail(email: string | null | undefined) {

@@ -1,8 +1,9 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
-import { identityLoader, requireStudent, requireUser } from "./helpers";
+import { getProfile, identityLoader, requireStudent, requireUser, toE164 } from "./helpers";
 
 /** Threads are stored with a canonical pair so two students never fork a chat. */
 function orderPair(first: Id<"users">, second: Id<"users">) {
@@ -40,9 +41,11 @@ export const start = mutation({
     const counterpart = await ctx.db.get(args.otherUserId);
     if (!counterpart) throw new Error("That student is no longer on CampusMart.");
 
+    let listingTitle: string | null = null;
     if (args.listingId) {
       const listing = await ctx.db.get(args.listingId);
       if (!listing) throw new Error("That post is no longer available.");
+      listingTitle = listing.title;
     }
 
     const pair = orderPair(user._id, args.otherUserId);
@@ -55,6 +58,7 @@ export const start = mutation({
       )
       .unique();
 
+    let isNewThread = false;
     if (!conversation) {
       const id = await ctx.db.insert("conversations", {
         listingId: args.listingId,
@@ -70,6 +74,7 @@ export const start = mutation({
         createdAt: now,
       });
       conversation = (await ctx.db.get(id)) as Doc<"conversations">;
+      isNewThread = true;
     }
 
     await ctx.db.insert("messages", {
@@ -89,6 +94,25 @@ export const start = mutation({
       aReadAt: senderIsA ? now : conversation.aReadAt,
       bReadAt: senderIsA ? conversation.bReadAt : now,
     });
+
+    // First contact about a listing: give the seller a heads-up by SMS if they
+    // saved a number. Scheduled, so MessageBird problems cannot fail the
+    // message; skipped quietly when there is no number or no key.
+    if (isNewThread && listingTitle) {
+      const sellerId = args.otherUserId;
+      const sellerProfile = await getProfile(ctx, sellerId);
+      const phone = sellerProfile?.phone
+        ? toE164(sellerProfile.phone)
+        : null;
+      if (phone) {
+        ctx.scheduler.runAfter(0, internal.sms.notifySeller, {
+          to: phone,
+          buyerName: user.name ?? "A student",
+          listingTitle,
+          preview: body.slice(0, 60),
+        });
+      }
+    }
 
     return { conversationId: conversation._id };
   },

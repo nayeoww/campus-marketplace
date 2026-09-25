@@ -1,7 +1,14 @@
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
-import { CAMPUS_DOMAIN, getProfile, isCampusEmail, isVerifiedStudent, lookupIdentity } from "./helpers";
+import {
+  CAMPUS_DOMAIN,
+  getProfile,
+  isCampusEmail,
+  isVerifiedStudent,
+  lookupIdentity,
+  toE164,
+} from "./helpers";
 
 const BRANCHES = [
   "Computer Science & Engineering",
@@ -58,6 +65,8 @@ export const me = query({
             year: profile.year,
             hostel: profile.hostel ?? null,
             bio: profile.bio ?? null,
+            // Private to the student; only ever used for their own alerts.
+            phone: profile.phone ?? null,
           }
         : null,
     };
@@ -72,6 +81,7 @@ export const saveProfile = mutation({
     year: v.string(),
     hostel: v.optional(v.string()),
     bio: v.optional(v.string()),
+    phone: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -101,12 +111,33 @@ export const saveProfile = mutation({
     const bio = args.bio ? normalize(args.bio, 280) : undefined;
     const hostel = args.hostel ? normalize(args.hostel, 60) : undefined;
 
+    // An empty string clears the number; anything else must be a valid
+    // Indian mobile in E.164 form or the save is rejected.
+    let phone: string | undefined;
+    let phoneInvalid = false;
+    if (args.phone === "") {
+      phone = undefined;
+    } else if (args.phone) {
+      const normalized = toE164(args.phone);
+      if (!normalized) {
+        phoneInvalid = true;
+      }
+      phone = normalized ?? undefined;
+    }
+
+    if (phoneInvalid) {
+      throw new Error(
+        "That phone number does not look like an Indian mobile. Include all 10 digits, with or without +91.",
+      );
+    }
+
     if (existing) {
       await ctx.db.patch(existing._id, {
         branch,
         year,
         bio,
         hostel,
+        phone,
         updatedAt: now,
       });
     } else {
@@ -116,6 +147,7 @@ export const saveProfile = mutation({
         year,
         bio,
         hostel,
+        phone,
         createdAt: now,
         updatedAt: now,
       });
