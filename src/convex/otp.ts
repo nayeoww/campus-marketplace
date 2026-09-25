@@ -8,8 +8,9 @@ import { CAMPUS_DOMAIN, isCampusEmail } from "./helpers";
  * CampusMart verification codes, handled entirely by Convex.
  *
  * The auth provider is only a bridge: it hands the generated code to
- * `issue`, which rate limits and stores it, then to `deliver`, which emails it.
- * Everything else — expiry, attempts, cooldown, consumption — lives here.
+ * `issue`, which rate limits and stores it, then to `deliver`, which posts it
+ * to CampusMart's own mail provider. Everything else — expiry, attempts,
+ * cooldown, consumption — lives here, and no third-party relay is involved.
  */
 
 const CODE_TTL_MS = 15 * 60 * 1000;
@@ -18,9 +19,9 @@ const WINDOW_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 45 * 1000;
 const MAX_ATTEMPTS = 5;
 
-/** Shared delivery endpoint on the platform mail relay. */
-const OTP_ENDPOINT = "https://auth.freebuff.app/send_otp";
-const OTP_ENDPOINT_KEY = "fb_email_2crN1hqIArZP2bEfvjp5Qik4";
+/** CampusMart's own mail provider, called with the deployment's own key. */
+const MAIL_ENDPOINT = "https://api.resend.com/emails";
+const DEFAULT_SENDER = "CampusMart <onboarding@resend.dev>";
 
 function normalize(email: string) {
   return email.trim().toLowerCase();
@@ -93,16 +94,45 @@ export const issue = internalMutation({
 export const deliver = internalAction({
   args: { id: v.id("otpCodes"), email: v.string(), code: v.string() },
   handler: async (ctx, args) => {
-    const response = await fetch(OTP_ENDPOINT, {
+    const apiKey = process.env.RESEND_API_KEY;
+
+    // Until a mail provider is connected the code is only written to the
+    // Convex logs, so a fresh deployment is never a locked door.
+    if (!apiKey) {
+      console.warn(
+        `[CampusMart] No RESEND_API_KEY is set. Sign-in code for ${args.email} is ${args.code}.`,
+      );
+      await ctx.runMutation(internal.otp.markDelivered, {
+        id: args.id,
+        ok: false,
+        status: 0,
+      });
+      throw new Error(
+        "Resend is not connected yet, so this email could not be sent.",
+      );
+    }
+
+    const response = await fetch(MAIL_ENDPOINT, {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "x-api-key": OTP_ENDPOINT_KEY,
       },
       body: JSON.stringify({
-        to: args.email,
-        otp: args.code,
-        appName: process.env.VLY_APP_NAME || "CampusMart",
+        from: process.env.RESEND_FROM_EMAIL || DEFAULT_SENDER,
+        to: [args.email],
+        subject: `${args.code} is your CampusMart sign-in code`,
+        text: `Your CampusMart sign-in code is ${args.code}. It works for fifteen minutes. If you did not ask for it, ignore this email.`,
+        html: `
+          <div style="background:#f6f2ea;padding:36px 0;font-family:Helvetica,Arial,sans-serif;color:#1a1913;">
+            <div style="max-width:540px;margin:0 auto;padding:0 26px;">
+              <p style="margin:0 0 26px;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#7e7a67;">CampusMart &middot; SSIPMT student marketplace</p>
+              <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Enter this code to finish signing in. It works for fifteen minutes.</p>
+              <p style="margin:0 0 26px;font-size:34px;font-weight:bold;letter-spacing:0.2em;color:#1f6b4a;">${args.code}</p>
+              <p style="margin:0;font-size:14px;line-height:1.6;color:#4b4838;">If you did not ask for this, ignore the email. Nothing happens until the code is entered.</p>
+            </div>
+          </div>
+        `,
       }),
     });
 
@@ -114,7 +144,7 @@ export const deliver = internalAction({
 
     if (!response.ok) {
       throw new Error(
-        `We could not email your code (relay replied ${response.status}). Try again in a moment.`,
+        `We could not email your code (mail provider replied ${response.status}). Try again in a moment.`,
       );
     }
 
@@ -127,7 +157,11 @@ export const markDelivered = internalMutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
       deliveredAt: args.ok ? Date.now() : undefined,
-      failedReason: args.ok ? undefined : `relay status ${args.status}`,
+      failedReason: args.ok
+        ? undefined
+        : args.status === 0
+          ? "no mail provider connected"
+          : `mail provider replied ${args.status}`,
     });
     return { ok: true };
   },

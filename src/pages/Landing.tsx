@@ -87,18 +87,14 @@ export default function Landing() {
               Est. 2026
             </p>
 
-            <h1 className="cm-display cm-h1 cm-hero__headline">
-              <span>Buy from students.</span>
-              <span>Sell to students.</span>
-              <span>
-                <em>Work</em> with students.
-              </span>
+            <h1 className="cm-display cm-hero__headline">
+              Second-hand gear and student skills, one campus away.
             </h1>
 
             <p className="cm-hero__lede">
-              Textbooks, calculators and hostel gear, plus the design, coding
-              and tutoring your classmates already do well — posted by verified
-              students, handed over on campus.
+              Every post comes from a verified student at the institute.
+              Inspect it in person, agree on the price, and hand it over on
+              campus — no shipping, no waiting.
             </p>
 
             <div className="cm-hero__cta">
