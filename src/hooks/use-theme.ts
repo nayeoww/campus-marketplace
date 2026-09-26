@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "campusmart-theme";
-const PAPER = "#f6f2ea";
-const NIGHT = "#131410";
+const PAPER = "#ffffff";
+const NIGHT = "#1c2433";
 
 function readStoredTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light";

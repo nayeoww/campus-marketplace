@@ -23,6 +23,7 @@ import {
 } from "@/lib/campus";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Link, useNavigate, useParams } from "react-router";
 
 type DialogKind = "message" | "report" | null;
@@ -48,6 +49,7 @@ export default function ListingDetail() {
   const [reportNote, setReportNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const viewCounted = useRef<string | null>(null);
@@ -121,6 +123,33 @@ export default function ListingDetail() {
       setFeedback(next.saved ? "Saved to your list." : "Removed from your saved list.");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not save this post.");
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    // A phone gets the native sheet, so the student can go straight to
+    // WhatsApp or Messages. Everyone else gets the clipboard.
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: listing.title,
+          text: `${listing.title} — ${formatPrice(listing.price)} on CampusMart`,
+          url,
+        });
+        return;
+      } catch (caught) {
+        // Closing the sheet is a decision, not a failure.
+        if (caught instanceof DOMException && caught.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copied. Send it to a classmate.");
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch {
+      toast.error("Could not copy the link. Copy it from the address bar.");
     }
   };
 
@@ -360,6 +389,14 @@ export default function ListingDetail() {
                   disabled={busy}
                 >
                   {listing.saved ? "Saved" : "Save for later"}
+                </button>
+                <button
+                  type="button"
+                  className="cm-btn cm-btn--quiet cm-share"
+                  data-copied={copied}
+                  onClick={handleShare}
+                >
+                  {copied ? "Link copied" : "Share"}
                 </button>
                 <button
                   type="button"

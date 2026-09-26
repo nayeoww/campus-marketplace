@@ -1,73 +1,82 @@
 /* ==========================================================================
-   CampusMart — design system (warm paper + forest)
+   CampusMart — design system (tangerine)
    Plain CSS only. No Tailwind utilities, no gradients, no glass, no blobs.
    Type: Space Grotesk for headings, Geist for body, Manrope for UI.
    Light is the default; `html.dark` swaps the whole palette for night.
-   Surfaces are soft and rounded — no hard bordered boxes anywhere.
+   Base is clean white; tangerine carries every action, price and highlight.
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  /* paper canvas ---------------------------------------------------------- */
-  --cm-bg: #f6f2ea;
-  --cm-bg-tint: #ece5d8;
-  --cm-surface: #fffdf8;
-  --cm-surface-soft: #f2ece0;
+  /* white canvas ---------------------------------------------------------- */
+  --cm-bg: #ffffff;
+  --cm-bg-tint: #e8ebed;
+  --cm-surface: #ffffff;
+  --cm-surface-soft: #f3f4f6;
 
-  --cm-ink: #1a1913;
-  --cm-ink-soft: #4b4838;
-  --cm-muted: #7e7a67;
+  --cm-ink: #333333;
+  --cm-ink-soft: #4b5563;
+  --cm-muted: #6b7280;
 
-  /* forest drives every call to action, price and highlight */
-  --cm-forest: #1f6b4a;
-  --cm-forest-strong: #145238;
-  --cm-forest-tint: #e1ebe3;
-  --cm-forest-tint-2: #c7dccf;
-  --cm-forest-deep: #10281e;
+  /* tangerine drives every call to action, price and highlight */
+  --cm-forest: #e05d38;
+  --cm-forest-strong: #b3421a;
+  --cm-forest-tint: #fdece5;
+  --cm-forest-tint-2: #f8d5c6;
+  --cm-forest-deep: #1c2433;
+  --cm-accent-glow: rgba(224, 93, 56, 0.22);
+  --cm-focus: rgba(224, 93, 56, 0.5);
 
-  /* aliases kept so component rules stay readable */
+  /* Label ink for tangerine fills. Deep brown reads 4.8:1 on #e05d38 where
+     white only manages 3.6:1, which fails AA at button-label sizes. */
+  --cm-on-accent: #2e1508;
+
+  /* The `--cm-forest*` names are historical — they hold tangerine now. They
+     survive because every component rule reads through these aliases. */
   --cm-accent: var(--cm-forest);
   --cm-accent-strong: var(--cm-forest-strong);
   --cm-accent-tint: var(--cm-forest-tint);
   --cm-accent-tint-2: var(--cm-forest-tint-2);
 
   /* status ---------------------------------------------------------------- */
-  --cm-warn-tint: #f6ead2;
+  --cm-warn-tint: #fdf0dc;
   --cm-warn-ink: #7a5514;
-  --cm-danger: #a2332a;
-  --cm-danger-tint: #f6e2dc;
-  --cm-danger-ink: #7c261e;
+  --cm-danger: #ef4444;
+  --cm-danger-tint: #fdeaea;
+  --cm-danger-ink: #b91c1c;
   --cm-positive-tint: var(--cm-forest-tint);
   --cm-positive-ink: var(--cm-forest-strong);
 
-  /* ink that sits on the deep forest surfaces */
-  --cm-on-deep: #e3ebe2;
-  --cm-on-deep-soft: #bdcdc1;
-  --cm-on-deep-muted: #9bac9f;
-  --cm-on-deep-dim: #87998b;
-  --cm-on-deep-faint: #788a7c;
+  /* ink that sits on the deep navy surfaces */
+  --cm-on-deep: #e9ecf2;
+  --cm-on-deep-soft: #c2c8d4;
+  --cm-on-deep-muted: #9aa3b5;
+  --cm-on-deep-dim: #7c8598;
+  --cm-on-deep-faint: #6b7488;
 
-  --cm-placeholder: #a49f8c;
+  --cm-placeholder: #9aa0a6;
 
-  --cm-hairline: rgba(26, 25, 19, 0.12);
+  --cm-hairline: #dcdfe2;
 
   /* type ---------------------------------------------------------------- */
   --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-body: "Geist", "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   --font-ui: "Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* shape --------------------------------------------------------------- */
   --r-xs: 8px;
-  --r-sm: 12px;
-  --r-md: 14px;
-  --r-lg: 20px;
-  --r-xl: 28px;
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
   --r-pill: 999px;
 
-  --shadow-1: 0 1px 2px rgba(26, 25, 19, 0.06), 0 10px 22px -16px rgba(26, 25, 19, 0.3);
-  --shadow-2: 0 2px 6px rgba(26, 25, 19, 0.07), 0 28px 50px -28px rgba(26, 25, 19, 0.4);
-  --shadow-accent: 0 10px 22px -12px rgba(31, 107, 74, 0.65);
+  --shadow-1: 0 1px 3px rgba(51, 51, 51, 0.1);
+  --shadow-2: 0 2px 8px rgba(51, 51, 51, 0.1), 0 18px 34px -26px rgba(51, 51, 51, 0.5);
+  --shadow-accent: 0 8px 20px -10px rgba(224, 93, 56, 0.5);
 
   --cm-gutter: clamp(18px, 4vw, 54px);
   --cm-max: 1280px;
@@ -80,45 +89,42 @@
 html.dark {
   color-scheme: dark;
 
-  --cm-bg: #131410;
-  --cm-bg-tint: #1d1f18;
-  --cm-surface: #1c1e17;
-  --cm-surface-soft: #23261d;
+  --cm-bg: #1c2433;
+  --cm-bg-tint: #212a3a;
+  --cm-surface: #2a3040;
+  --cm-surface-soft: #262b38;
 
-  --cm-ink: #f1efe4;
-  --cm-ink-soft: #c3c0b0;
-  --cm-muted: #8d8a7a;
+  --cm-ink: #e5e5e5;
+  --cm-ink-soft: #ccd2dd;
+  --cm-muted: #a3a3a3;
 
-  --cm-forest: #4eb586;
-  --cm-forest-strong: #7ddcac;
-  --cm-forest-tint: #1d3026;
-  --cm-forest-tint-2: #27402f;
-  --cm-forest-deep: #16281f;
+  --cm-forest: #e05d38;
+  --cm-forest-strong: #f2855f;
+  --cm-forest-tint: #3a2620;
+  --cm-forest-tint-2: #4b2f26;
+  --cm-forest-deep: #151b26;
+  --cm-accent-glow: rgba(242, 133, 95, 0.32);
+  --cm-focus: rgba(242, 133, 95, 0.6);
 
-  --cm-warn-tint: #352a17;
+  --cm-warn-tint: #3a2f1c;
   --cm-warn-ink: #e0b466;
-  --cm-danger: #bf4f3f;
-  --cm-danger-tint: #38211d;
-  --cm-danger-ink: #f0a294;
+  --cm-danger: #ef4444;
+  --cm-danger-tint: #3a2126;
+  --cm-danger-ink: #f4a9a9;
 
-  --cm-on-deep: #dcefe3;
-  --cm-on-deep-soft: #b6cdbf;
-  --cm-on-deep-muted: #94ab9d;
-  --cm-on-deep-dim: #819888;
-  --cm-on-deep-faint: #74897b;
+  --cm-on-deep: #e5e9f0;
+  --cm-on-deep-soft: #bcc3d1;
+  --cm-on-deep-muted: #98a1b2;
+  --cm-on-deep-dim: #7d8697;
+  --cm-on-deep-faint: #6c7586;
 
-  --cm-placeholder: #7c7969;
+  --cm-placeholder: #767f8f;
 
-  --cm-hairline: rgba(241, 239, 228, 0.14);
+  --cm-hairline: #3d4354;
 
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 22px -16px rgba(0, 0, 0, 0.8);
-  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5), 0 28px 50px -28px rgba(0, 0, 0, 0.9);
-  --shadow-accent: 0 10px 22px -12px rgba(0, 0, 0, 0.6);
-}
-
-/* The forest fill is bright at night, so its label has to invert. */
-html.dark .cm-btn--accent {
-  color: #0b1d14;
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.45), 0 18px 34px -26px rgba(0, 0, 0, 0.85);
+  --shadow-accent: 0 8px 20px -10px rgba(0, 0, 0, 0.7);
 }
 
 body {
@@ -179,7 +185,7 @@ body {
 }
 
 .cm-app :focus-visible {
-  outline: 3px solid rgba(31, 107, 74, 0.45);
+  outline: 3px solid var(--cm-focus);
   outline-offset: 2px;
 }
 
@@ -395,7 +401,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.02em;
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
   border-radius: var(--r-pill);
   padding: 1px 7px;
   line-height: 1.6;
@@ -472,7 +478,7 @@ body {
 
 .cm-initials--accent {
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
   width: 64px;
   height: 64px;
   font-size: 22px;
@@ -556,7 +562,7 @@ body {
 
 .cm-btn--accent {
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
   box-shadow: var(--shadow-accent);
 }
 
@@ -716,7 +722,7 @@ body {
 .cm-textarea:focus {
   outline: none;
   background: var(--cm-surface);
-  box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.2);
+  box-shadow: 0 0 0 3px var(--cm-accent-glow);
 }
 
 .cm-input::placeholder,
@@ -1405,7 +1411,7 @@ body {
 .cm-cat-strip__item:hover {
   transform: translateY(-2px);
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
 }
 
 .cm-cat-strip__item small {
@@ -1421,8 +1427,8 @@ body {
 }
 
 .cm-cat-strip__item:hover small {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  background: rgba(46, 21, 8, 0.16);
+  color: var(--cm-on-accent);
 }
 
 /* ----------------------------------------------------------- editorial --- */
@@ -1514,8 +1520,8 @@ body {
 }
 
 .cm-band--ink .cm-btn--accent {
-  background: #fff;
-  color: var(--cm-forest-deep);
+  background: var(--cm-accent);
+  color: var(--cm-on-accent);
   box-shadow: none;
 }
 
@@ -1892,7 +1898,7 @@ body {
 
 .cm-tab[data-active="true"] {
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
   box-shadow: var(--shadow-accent);
 }
 
@@ -1922,7 +1928,7 @@ body {
 
 .cm-upload--active {
   background: var(--cm-accent-tint);
-  box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.24);
+  box-shadow: 0 0 0 3px var(--cm-accent-glow);
 }
 
 .cm-upload__row {
@@ -2294,7 +2300,7 @@ body {
 
 .cm-msg--mine .cm-msg__bubble {
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
 }
 
 .cm-thread__composer {
@@ -2331,7 +2337,7 @@ body {
 
 .cm-msg-starter:hover {
   background: var(--cm-accent);
-  color: #fff;
+  color: var(--cm-on-accent);
 }
 
 /* ------------------------------------------------------------ profile ---- */
@@ -2456,7 +2462,7 @@ body {
 .cm-otp-single:focus {
   outline: none;
   background: var(--cm-surface);
-  box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.2);
+  box-shadow: 0 0 0 3px var(--cm-accent-glow);
 }
 
 .cm-checklist {
@@ -2752,4 +2758,94 @@ body {
     transition: none !important;
     transform: none !important;
   }
+}
+
+/* ==========================================================================
+   Interaction layer. Motion here is only ever a response to something the
+   student did — hover, press, scroll, arrival. Nothing loops or drifts.
+   ========================================================================== */
+
+/* The header only earns a heavier shadow once content is sliding under it. */
+.cm-header {
+  transition: background-color 0.2s ease;
+}
+
+.cm-header[data-scrolled="true"] .cm-header__inner {
+  box-shadow: var(--shadow-2);
+}
+
+/* Nav links grow a tangerine underline from the left on hover and when active. */
+.cm-nav__link {
+  position: relative;
+}
+
+.cm-nav__link::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 5px;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: var(--cm-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s cubic-bezier(0.22, 0.7, 0.3, 1);
+}
+
+.cm-nav__link:hover::after,
+.cm-nav__link[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Photos settle back a touch on hover instead of only lifting the frame. */
+.cm-card__frame img {
+  transition: transform 0.4s cubic-bezier(0.22, 0.7, 0.3, 1);
+}
+
+.cm-card:hover .cm-card__frame img {
+  transform: scale(1.045);
+}
+
+/* Listings arrive one after another rather than all at once. */
+@keyframes cm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cm-market-grid > .cm-card {
+  animation: cm-rise 0.5s cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+}
+
+.cm-market-grid > .cm-card:nth-child(1) { animation-delay: 0.02s; }
+.cm-market-grid > .cm-card:nth-child(2) { animation-delay: 0.08s; }
+.cm-market-grid > .cm-card:nth-child(3) { animation-delay: 0.14s; }
+.cm-market-grid > .cm-card:nth-child(4) { animation-delay: 0.2s; }
+.cm-market-grid > .cm-card:nth-child(5) { animation-delay: 0.26s; }
+.cm-market-grid > .cm-card:nth-child(6) { animation-delay: 0.32s; }
+.cm-market-grid > .cm-card:nth-child(n + 7) { animation-delay: 0.36s; }
+
+/* Everything clickable answers a press. */
+.cm-tab:active,
+.cm-rail-link:active,
+.cm-cat-strip__item:active,
+.cm-msg-starter:active {
+  transform: scale(0.985);
+}
+
+/* Native share sheet where the device has one, clipboard everywhere else. */
+.cm-share {
+  position: relative;
+}
+
+.cm-share[data-copied="true"] {
+  background: var(--cm-accent-tint);
+  color: var(--cm-accent-strong);
+  box-shadow: none;
 }

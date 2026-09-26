@@ -4,8 +4,8 @@
   "description": "The private marketplace where SSIPMT students buy and sell, and hire the skills their classmates already have.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6f2ea",
-  "theme_color": "#10281e",
+  "background_color": "#ffffff",
+  "theme_color": "#e05d38",
   "icons": [
     {
       "src": "/logo.svg",
