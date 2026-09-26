@@ -1445,12 +1445,6 @@ body {
   gap: clamp(24px, 3vw, 44px);
 }
 
-.cm-columns-4 {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(20px, 2.2vw, 34px);
-}
-
 .cm-entry {
   display: flex;
   flex-direction: column;
@@ -2632,10 +2626,6 @@ body {
     grid-column: span 2;
   }
 
-  .cm-columns-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .cm-table__head {
     display: none;
   }
@@ -2702,7 +2692,6 @@ body {
   .cm-market-grid,
   .cm-columns-3,
   .cm-columns-2,
-  .cm-columns-4,
   .cm-form-grid,
   .cm-summary {
     grid-template-columns: minmax(0, 1fr);
@@ -2757,6 +2746,150 @@ body {
     animation: none !important;
     transition: none !important;
     transform: none !important;
+  }
+}
+
+/* -------------------------------------------------------------- bubble --- */
+
+/* The floating "how it works" bubble. It stays out of the reading flow and
+   only speaks up when the student asks for it. */
+.cm-fab {
+  position: fixed;
+  right: clamp(16px, 3vw, 34px);
+  bottom: clamp(16px, 3vw, 30px);
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 22px 0 10px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--cm-accent);
+  color: var(--cm-on-accent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-accent);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.cm-fab:hover {
+  transform: translateY(-3px);
+  background: var(--cm-accent-strong);
+}
+
+.cm-fab:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.cm-fab__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cm-surface);
+  color: var(--cm-accent-strong);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* The list inside the modal: numbered bubbles joined by a single line, so the
+   four steps read as one movement rather than four separate cards. */
+.cm-modal--wide {
+  max-width: 560px;
+  gap: 24px;
+}
+
+.cm-howlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cm-howlist__step {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding-bottom: 22px;
+}
+
+.cm-howlist__step:last-child {
+  padding-bottom: 0;
+}
+
+.cm-howlist__step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 40px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--cm-accent-tint-2);
+}
+
+.cm-howlist__bubble {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--cm-accent);
+  color: var(--cm-on-accent);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  transition: transform 0.2s ease;
+}
+
+.cm-howlist__step:hover .cm-howlist__bubble {
+  transform: scale(1.1);
+}
+
+.cm-howlist__title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--cm-ink);
+  margin-bottom: 5px;
+}
+
+.cm-howlist__body {
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--cm-ink-soft);
+}
+
+/* On a phone the label is dropped and only the round marker is left, so it
+   never sits across the content. */
+@media (max-width: 560px) {
+  .cm-fab {
+    width: 52px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+    letter-spacing: 0;
+  }
+
+  .cm-fab__dot {
+    width: 36px;
+    height: 36px;
   }
 }
 
