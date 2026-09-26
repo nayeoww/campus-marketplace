@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { CAMPUS_DOMAIN, CAMPUS_NAME, CAMPUS_SHORT } from "@/lib/campus";
 import { useQuery } from "convex/react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 type NavItem = {
@@ -57,6 +57,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // The header only needs to know whether content is passing under it, so one
+  // boolean beats re-rendering on every scroll event.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="cm-app">
-      <header className="cm-header">
+      <header className="cm-header" data-scrolled={scrolled}>
         <div className="cm-shell">
           <div className="cm-header__inner">
             <Link to="/" className="cm-brand">
