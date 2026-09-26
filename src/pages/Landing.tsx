@@ -12,14 +12,14 @@ import {
   relativeTime,
 } from "@/lib/campus";
 import { useMutation, useQuery } from "convex/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 const HOW_IT_WORKS = [
   {
     index: "01",
     title: "Register with your SSIPMT email",
-    body: `Sign in with your @${CAMPUS_DOMAIN} address. A six-digit code proves the address is yours, so nobody from outside the institute can get an account.`,
+    body: `Sign in with your @${CAMPUS_DOMAIN} address. A six-digit code proves it is yours, so nobody outside the institute gets an account.`,
   },
   {
     index: "02",
@@ -28,15 +28,106 @@ const HOW_IT_WORKS = [
   },
   {
     index: "03",
-    title: "Post something, or reply to a post",
-    body: "List an item you are done with, offer the work you are good at, or ask about something you need. Messaging opens the moment you find someone.",
+    title: "Post something, or reply to one",
+    body: "List what you are finished with, offer the work you are good at, or ask about something you need.",
   },
   {
     index: "04",
     title: "Settle it on campus",
-    body: `Check the item, agree on the price and hand it over at the canteen, the library or your block. ${CAMPUS_NAME} takes no cut and ships nothing.`,
+    body: "Check it, agree the price, hand it over at the canteen or your block.",
   },
 ];
+
+/**
+ * The four steps live in a bubble rather than a section of their own, so the
+ * page stays short and the explanation is one click away instead of another
+ * block of text a visitor has to scroll past.
+ */
+function HowItWorksBubble() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  return (
+    <>
+      <button
+        type="button"
+        className="cm-fab"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+      >
+        <span className="cm-fab__dot" aria-hidden="true">
+          ?
+        </span>
+        How {CAMPUS_NAME} works
+      </button>
+
+      {open && (
+        <div
+          className="cm-modal-backdrop"
+          role="presentation"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className="cm-modal cm-modal--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`How ${CAMPUS_NAME} works`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="cm-eyebrow">
+              How {CAMPUS_NAME} works
+              <span className="cm-eyebrow__rule" />
+            </p>
+
+            <ol className="cm-howlist">
+              {HOW_IT_WORKS.map((step) => (
+                <li key={step.index} className="cm-howlist__step">
+                  <span className="cm-howlist__bubble">{step.index}</span>
+                  <div>
+                    <h3 className="cm-howlist__title">{step.title}</h3>
+                    <p className="cm-howlist__body">{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <p className="cm-note">
+              No fee to post, no cut when it sells, nothing to ship. Every
+              handover happens on campus, between two verified students.
+            </p>
+
+            <div className="cm-actions">
+              <Link
+                to="/auth"
+                className="cm-btn cm-btn--accent"
+                onClick={() => setOpen(false)}
+              >
+                Get an account
+              </Link>
+              <button
+                type="button"
+                className="cm-btn cm-btn--quiet"
+                onClick={() => setOpen(false)}
+                autoFocus
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function Landing() {
   const { isAuthenticated } = useCampusUser();
@@ -304,25 +395,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ----------------------------------------------------- how it works */}
-      <section className="cm-band">
-        <div className="cm-shell">
-          <div className="cm-section-head">
-            <h2 className="cm-display cm-h2">How {CAMPUS_NAME} works</h2>
-            <span className="cm-section-head__meta">Four steps, no fees</span>
-          </div>
-          <div className="cm-columns-4">
-            {HOW_IT_WORKS.map((step) => (
-              <div key={step.index} className="cm-entry">
-                <span className="cm-entry__index">{step.index}</span>
-                <h3 className="cm-entry__title">{step.title}</h3>
-                <p className="cm-entry__body">{step.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ------------------------------------------------------- closing cta */}
       <section className="cm-band cm-band--ink">
         <div className="cm-shell cm-cta-band">
@@ -353,6 +425,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
+      <HowItWorksBubble />
     </AppShell>
   );
 }
