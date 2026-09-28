@@ -5,7 +5,9 @@ import { api } from "@/convex/_generated/api";
 import { useCampusUser } from "@/hooks/use-campus-user";
 import {
   CATEGORIES,
+  CAMPUS_CITY,
   CAMPUS_DOMAIN,
+  CAMPUS_FULL,
   CAMPUS_NAME,
   CAMPUS_SHORT,
   formatPrice,
@@ -175,7 +177,6 @@ export default function Landing() {
             <p className="cm-eyebrow">
               {CAMPUS_SHORT} student marketplace
               <span className="cm-eyebrow__rule" />
-              Est. 2026
             </p>
 
             <h1 className="cm-display cm-hero__headline">
@@ -183,9 +184,9 @@ export default function Landing() {
             </h1>
 
             <p className="cm-hero__lede">
-              Every post comes from a verified student at the institute.
-              Inspect it in person, agree on the price, and hand it over on
-              campus — no shipping, no waiting.
+              Every post comes from a verified student at {CAMPUS_FULL},
+              {CAMPUS_CITY}. Inspect it in person, agree on the price, and hand
+              it over on campus — no shipping, no waiting.
             </p>
 
             <div className="cm-hero__cta">
