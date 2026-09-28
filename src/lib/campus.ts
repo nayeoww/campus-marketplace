@@ -3,6 +3,9 @@ import { formatDistanceToNow } from "date-fns";
 
 export const CAMPUS_NAME = "CampusMart";
 export const CAMPUS_SHORT = "SSIPMT";
+export const CAMPUS_FULL =
+  "Shri Shankaracharya Institute of Professional Management and Technology";
+export const CAMPUS_CITY = "Mujhgahan";
 export const CAMPUS_DOMAIN = "ssipmt.com";
 export const CAMPUS_EMAIL_HINT = `name@${CAMPUS_DOMAIN}`;
 

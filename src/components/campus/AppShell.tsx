@@ -2,7 +2,13 @@ import { Initials } from "@/components/campus/Bits";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
-import { CAMPUS_DOMAIN, CAMPUS_NAME, CAMPUS_SHORT } from "@/lib/campus";
+import {
+  CAMPUS_CITY,
+  CAMPUS_DOMAIN,
+  CAMPUS_FULL,
+  CAMPUS_NAME,
+  CAMPUS_SHORT,
+} from "@/lib/campus";
 import { useQuery } from "convex/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
@@ -203,9 +209,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="cm-footer__col">
               <span className="cm-brand__mark">{CAMPUS_NAME}</span>
               <p>
-                The student marketplace for {CAMPUS_SHORT}. Buy and sell what you
-                have finished with, and hire the skills your classmates already
-                have.
+                The student marketplace for {CAMPUS_FULL}, {CAMPUS_CITY}. Buy
+                and sell what you have finished with, and hire the skills your
+                classmates already have.
               </p>
               <p className="cm-note">
                 Built and run by one student. Accounts are limited to
