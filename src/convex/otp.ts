@@ -7,6 +7,7 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { createAuth } from "./betterAuth";
+import { sendOtpEmail } from "./email";
 import { CAMPUS_DOMAIN, isCampusEmail } from "./helpers";
 
 /**
@@ -44,16 +45,31 @@ export const request = action({
     const gate = await ctx.runMutation(internal.otp.prepareGate, { email });
     if (!gate.allowed) throw new Error(gate.message);
 
-    try {
-      await createAuth(ctx).api.sendVerificationOTP({
-        body: { email, type: "sign-in" },
+    // Better Auth generates and stores the code; we deliver it ourselves so a
+    // delivery failure is reported instead of vanishing into a background task.
+    const captured: string[] = [];
+    await createAuth(ctx, (otp) => captured.push(otp)).api.sendVerificationOTP({
+      body: { email, type: "sign-in" },
+    });
+
+    const otp = captured[captured.length - 1];
+    if (!otp) {
+      await ctx.runMutation(internal.otp.markSent, {
+        id: gate.id,
+        ok: false,
+        detail: "no code generated",
       });
+      throw new Error(
+        "The sign-in code could not be generated just now. Try again in a moment.",
+      );
+    }
+
+    try {
+      await sendOtpEmail(email, otp);
     } catch (caught) {
       const detail = caught instanceof Error ? caught.message : String(caught);
       await ctx.runMutation(internal.otp.markSent, { id: gate.id, ok: false, detail });
-      throw new Error(
-        "The code could not be emailed just now. Try again in a moment.",
-      );
+      throw new Error(`CampusMart could not email your code. ${detail}`);
     }
 
     await ctx.runMutation(internal.otp.markSent, { id: gate.id, ok: true });

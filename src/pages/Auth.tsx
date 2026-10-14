@@ -31,6 +31,11 @@ function readableAuthError(error: unknown) {
   if (raw.toLowerCase().includes("ssipmt")) {
     return `CampusMart runs on @${CAMPUS_DOMAIN} addresses only. Use the email address the institute gave you.`;
   }
+  // Delivery and configuration problems carry an actionable provider message,
+  // so pass it through instead of burying it under the generic inbox line.
+  if (raw.includes("could not email your code")) {
+    return raw.slice(0, 300);
+  }
   if (
     raw.toLowerCase().includes("invalid") ||
     raw.toLowerCase().includes("code") ||
