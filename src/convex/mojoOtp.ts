@@ -1,7 +1,12 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
-import { action, internalAction, internalMutation } from "./_generated/server";
+import {
+  action,
+  internalAction,
+  internalMutation,
+  internalQuery,
+} from "./_generated/server";
 import { CAMPUS_DOMAIN, isCampusEmail } from "./helpers";
 
 /**
@@ -30,10 +35,25 @@ type MojoResponse = {
   authenticated?: boolean;
   message?: string;
   code?: number;
+  oauth?: { access_token?: string };
 };
 
 function domainError() {
   return `CampusMart is open to SSIPMT students only. Use your @${CAMPUS_DOMAIN} email address.`;
+}
+
+/**
+ * The MojoAuth key, read from whichever name the deployment uses. The official
+ * docs call it MOJOAUTH_API_KEY; older setups used MOJOAUTH.
+ */
+function mojoKey() {
+  return process.env.MOJOAUTH_API_KEY ?? process.env.MOJOAUTH;
+}
+
+function missingKeyError() {
+  return new Error(
+    "Sign-in is not configured yet — add your MojoAuth key as MOJOAUTH_API_KEY in the Keys tab.",
+  );
 }
 
 /**
@@ -49,12 +69,8 @@ export const request = action({
     const gate = await ctx.runMutation(internal.mojoOtp.prepareGate, { email });
     if (!gate.allowed) throw new Error(gate.message);
 
-    const apiKey = process.env.MOJOAUTH;
-    if (!apiKey) {
-      throw new Error(
-        "Sign-in is not configured yet — the MojoAuth key is missing from this deployment.",
-      );
-    }
+    const apiKey = mojoKey();
+    if (!apiKey) throw missingKeyError();
 
     const response = await fetch(`${MOJOAUTH_ENDPOINT}/users/emailotp`, {
       method: "POST",
@@ -69,6 +85,8 @@ export const request = action({
     await ctx.runMutation(internal.mojoOtp.markSent, {
       id: gate.id,
       ok: response.ok,
+      // MojoAuth hands back a state_id with the send; verification requires it.
+      stateId: data.state_id,
       detail: response.ok ? undefined : `mojoauth ${response.status} ${data.message ?? ""}`.trim(),
     });
 
@@ -87,14 +105,16 @@ export const request = action({
  * the Convex Credentials authorize step, so a pass here signs the session in.
  */
 export const verify = internalAction({
-  args: { email: v.string(), otp: v.string() },
+  args: { email: v.string(), otp: v.string(), stateId: v.optional(v.string()) },
   handler: async (_ctx, args) => {
-    const apiKey = process.env.MOJOAUTH;
-    if (!apiKey) {
-      throw new Error(
-        "Sign-in is not configured yet — the MojoAuth key is missing from this deployment.",
-      );
-    }
+    const apiKey = mojoKey();
+    if (!apiKey) throw missingKeyError();
+
+    // MojoAuth verifies by challenge id, not by email. Keep the email-only
+    // shape as a fallback for rows issued before the state id was stored.
+    const body = args.stateId
+      ? { state_id: args.stateId, otp: args.otp }
+      : { email: args.email, otp: args.otp };
 
     const response = await fetch(`${MOJOAUTH_ENDPOINT}/users/emailotp/verify`, {
       method: "POST",
@@ -102,7 +122,7 @@ export const verify = internalAction({
         "Content-Type": "application/json",
         "x-api-key": apiKey,
       },
-      body: JSON.stringify({ email: args.email, otp: args.otp }),
+      body: JSON.stringify(body),
     });
     const data = (await response.json().catch(() => ({}))) as MojoResponse;
 
@@ -110,7 +130,35 @@ export const verify = internalAction({
       return { authenticated: false as const, detail: data.message ?? `status ${response.status}` };
     }
 
-    return { authenticated: Boolean(data.authenticated), detail: undefined as string | undefined };
+    // Accept any success signal MojoAuth may return, but never override an
+    // explicit `authenticated: false`.
+    const authenticated =
+      data.authenticated !== false &&
+      (data.authenticated === true ||
+        data.status === "success" ||
+        Boolean(data.oauth?.access_token));
+
+    return { authenticated, detail: undefined as string | undefined };
+  },
+});
+
+/**
+ * The MojoAuth challenge id for the newest live code on an address. Verification
+ * cannot read the database itself, so `authorize` fetches it through this query
+ * before calling `verify`.
+ */
+export const pendingChallenge = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = normalize(args.email);
+    const rows = await ctx.db
+      .query("otpCodes")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .order("desc")
+      .take(6);
+
+    const active = rows.find((row) => !row.consumedAt);
+    return { stateId: active?.stateId ?? null };
   },
 });
 
@@ -177,10 +225,16 @@ export const prepareGate = internalMutation({
 });
 
 export const markSent = internalMutation({
-  args: { id: v.id("otpCodes"), ok: v.boolean(), detail: v.optional(v.string()) },
+  args: {
+    id: v.id("otpCodes"),
+    ok: v.boolean(),
+    stateId: v.optional(v.string()),
+    detail: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
       deliveredAt: args.ok ? Date.now() : undefined,
+      stateId: args.ok ? args.stateId : undefined,
       failedReason: args.ok ? undefined : args.detail ?? "delivery failed",
     });
     return { ok: true };

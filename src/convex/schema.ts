@@ -158,6 +158,8 @@ const schema = defineSchema(
     otpCodes: defineTable({
       email: v.string(),
       code: v.string(),
+      /** The MojoAuth challenge id issued by the send call; required to verify. */
+      stateId: v.optional(v.string()),
       expiresAt: v.number(),
       attempts: v.number(),
       maxAttempts: v.number(),

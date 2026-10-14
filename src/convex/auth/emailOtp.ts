@@ -27,7 +27,17 @@ export const emailOtp: ConvexCredentialsConfig = ConvexCredentials({
       throw new Error("Enter the six digits from the email we sent you.");
     }
 
-    const result = await ctx.runAction(internal.mojoOtp.verify, { email, otp });
+    // MojoAuth verifies against the challenge id it issued when the code was
+    // sent, so fetch that before checking the digits.
+    const { stateId } = await ctx.runQuery(internal.mojoOtp.pendingChallenge, {
+      email,
+    });
+
+    const result = await ctx.runAction(internal.mojoOtp.verify, {
+      email,
+      otp,
+      stateId: stateId ?? undefined,
+    });
     if (!result.authenticated) {
       // Wrong or expired: charge the attempt so repeated guessing locks out.
       await ctx.runMutation(internal.mojoOtp.bumpAttempts, { email });
