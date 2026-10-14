@@ -31,11 +31,10 @@ optional and only enables SMS notifications. Set `VLY_CONVEX_AUTH_ISSUER` only
 when using a non-default federated issuer.
 
 Keep deployment secrets in the hosting provider or Convex environment settings;
-do not commit `.env.keys` or other private environment files. A dotenv
-encryption key was previously committed in this repository: rotate/revoke that
-key and any values encrypted with it, then remove the key from Git history
-before making the repository public. Deleting the file from the working tree
-does not remove historical copies.
+do not commit `.env.keys` or other private environment files. The previously
+committed dotenv encryption key has been removed from the repository history.
+If that key was used to encrypt environment files outside this repository,
+replace it and re-encrypt those files before using them.
 
 Before a production release, generate and commit the Convex bindings, deploy
 the schema, and verify the required environment variables against the
