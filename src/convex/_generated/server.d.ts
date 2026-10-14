@@ -1,23 +1,14 @@
 /* eslint-disable */
-  /**
-   * Generated utilities for implementing server-side Convex query and mutation functions.
-   *
-   * THIS CODE IS AUTOMATICALLY GENERATED.
-   *
-   * To regenerate, run `npx convex dev`.
-   * @module
-   */
-  
+/**
+ * Generated utilities for implementing server-side Convex query and mutation functions.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
 import {
-  actionGeneric,
-  httpActionGeneric,
-  queryGeneric,
-  mutationGeneric,
-  internalActionGeneric,
-  internalMutationGeneric,
-  internalQueryGeneric,
-} from "convex/server";
-import type {
   ActionBuilder,
   HttpActionBuilder,
   MutationBuilder,
@@ -30,7 +21,6 @@ import type {
 } from "convex/server";
 import type { DataModel } from "./dataModel.js";
 
-
 /**
  * Define a query in this Convex app's public API.
  *
@@ -39,7 +29,7 @@ import type { DataModel } from "./dataModel.js";
  * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
  * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
  */
-export const query: QueryBuilder<DataModel, "public"> = queryGeneric;
+export declare const query: QueryBuilder<DataModel, "public">;
 
 /**
  * Define a query that is only accessible from other Convex functions (but not from the client).
@@ -49,7 +39,7 @@ export const query: QueryBuilder<DataModel, "public"> = queryGeneric;
  * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
  * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
  */
-export const internalQuery: QueryBuilder<DataModel, "internal"> = internalQueryGeneric;
+export declare const internalQuery: QueryBuilder<DataModel, "internal">;
 
 /**
  * Define a mutation in this Convex app's public API.
@@ -59,7 +49,7 @@ export const internalQuery: QueryBuilder<DataModel, "internal"> = internalQueryG
  * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
  * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
  */
-export const mutation: MutationBuilder<DataModel, "public"> = mutationGeneric;
+export declare const mutation: MutationBuilder<DataModel, "public">;
 
 /**
  * Define a mutation that is only accessible from other Convex functions (but not from the client).
@@ -69,7 +59,7 @@ export const mutation: MutationBuilder<DataModel, "public"> = mutationGeneric;
  * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
  * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
  */
-export const internalMutation: MutationBuilder<DataModel, "internal"> = internalMutationGeneric;
+export declare const internalMutation: MutationBuilder<DataModel, "internal">;
 
 /**
  * Define an action in this Convex app's public API.
@@ -82,7 +72,7 @@ export const internalMutation: MutationBuilder<DataModel, "internal"> = internal
  * @param func - The action. It receives an {@link ActionCtx} as its first argument.
  * @returns The wrapped action. Include this as an `export` to name it and make it accessible.
  */
-export const action: ActionBuilder<DataModel, "public"> = actionGeneric;
+export declare const action: ActionBuilder<DataModel, "public">;
 
 /**
  * Define an action that is only accessible from other Convex functions (but not from the client).
@@ -90,7 +80,7 @@ export const action: ActionBuilder<DataModel, "public"> = actionGeneric;
  * @param func - The function. It receives an {@link ActionCtx} as its first argument.
  * @returns The wrapped function. Include this as an `export` to name it and make it accessible.
  */
-export const internalAction: ActionBuilder<DataModel, "internal"> = internalActionGeneric;
+export declare const internalAction: ActionBuilder<DataModel, "internal">;
 
 /**
  * Define an HTTP action.
@@ -103,9 +93,7 @@ export const internalAction: ActionBuilder<DataModel, "internal"> = internalActi
  * and a Fetch API `Request` object as its second.
  * @returns The wrapped function. Import this function from `convex/http.js` and route it to hook it up.
  */
-export const httpAction: HttpActionBuilder = httpActionGeneric;
-
-export const env: Record<string, string | undefined> = process.env as unknown as Record<string, string | undefined>;
+export declare const httpAction: HttpActionBuilder;
 
 /**
  * A set of services for use within Convex query functions.
