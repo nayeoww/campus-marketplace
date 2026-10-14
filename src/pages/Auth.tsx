@@ -45,7 +45,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isAuthenticated, signIn } = useAuth();
   const { me } = useCampusUser();
   const navigate = useNavigate();
-  const requestOtp = useAction(api.mojoOtp.request);
+  const requestOtp = useAction(api.otp.request);
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
     searchParams.get("returnTo"),
@@ -69,8 +69,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   }, [isAuthenticated, me, navigate, redirect]);
 
   const sendCode = async (address: string) => {
-    // Convex applies the campus-domain gate, cooldowns and caps; MojoAuth
-    // generates the code and emails it. No session is created by this call.
+    // Convex applies the campus-domain gate, cooldowns and caps; Better Auth
+    // generates the code and Resend emails it. No session is created here.
     await requestOtp({ email: address });
   };
 

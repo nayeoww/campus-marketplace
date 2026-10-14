@@ -5,17 +5,17 @@ import {
   action,
   internalAction,
   internalMutation,
-  internalQuery,
 } from "./_generated/server";
+import { createAuth } from "./betterAuth";
 import { CAMPUS_DOMAIN, isCampusEmail } from "./helpers";
 
 /**
- * Email sign-in codes, delivered and verified by MojoAuth.
+ * Student sign-in codes.
  *
- * Convex stays the gatekeeper: it checks the campus domain, applies the same
- * cooldown and per-window caps as before, and keeps the audit trail in the
- * `otpCodes` table. MojoAuth generates the code, emails it and confirms it —
- * the code itself never passes through this deployment.
+ * Better Auth generates and checks the six-digit code; Convex stays the
+ * gatekeeper — campus domain, resend cooldown, per-window caps, attempt
+ * counting and the audit trail in `otpCodes`. Convex Auth then turns a
+ * successful check into a real session (see auth/emailOtp.ts).
  */
 
 const WINDOW_MS = 10 * 60 * 1000;
@@ -23,42 +23,17 @@ const MAX_CODES_PER_WINDOW = 3;
 const RESEND_COOLDOWN_MS = 45 * 1000;
 const MAX_ATTEMPTS = 5;
 
-const MOJOAUTH_ENDPOINT = "https://api.mojoauth.com";
-
 function normalize(email: string) {
   return email.trim().toLowerCase();
 }
-
-type MojoResponse = {
-  state_id?: string;
-  status?: string;
-  authenticated?: boolean;
-  message?: string;
-  code?: number;
-  oauth?: { access_token?: string };
-};
 
 function domainError() {
   return `CampusMart is open to SSIPMT students only. Use your @${CAMPUS_DOMAIN} email address.`;
 }
 
 /**
- * The MojoAuth key, read from whichever name the deployment uses. The official
- * docs call it MOJOAUTH_API_KEY; older setups used MOJOAUTH.
- */
-function mojoKey() {
-  return process.env.MOJOAUTH_API_KEY ?? process.env.MOJOAUTH;
-}
-
-function missingKeyError() {
-  return new Error(
-    "Sign-in is not configured yet — add your MojoAuth key as MOJOAUTH_API_KEY in the Keys tab.",
-  );
-}
-
-/**
- * Called from the sign-in screen. Runs the gate checks, then asks MojoAuth to
- * email a fresh code for the address.
+ * Called from the sign-in screen. Runs the gate checks, then asks Better Auth
+ * to generate a code and email it.
  */
 export const request = action({
   args: { email: v.string() },
@@ -66,105 +41,49 @@ export const request = action({
     const email = normalize(args.email);
     if (!isCampusEmail(email)) throw new Error(domainError());
 
-    const gate = await ctx.runMutation(internal.mojoOtp.prepareGate, { email });
+    const gate = await ctx.runMutation(internal.otp.prepareGate, { email });
     if (!gate.allowed) throw new Error(gate.message);
 
-    const apiKey = mojoKey();
-    if (!apiKey) throw missingKeyError();
-
-    const response = await fetch(`${MOJOAUTH_ENDPOINT}/users/emailotp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
-      body: JSON.stringify({ email }),
-    });
-    const data = (await response.json().catch(() => ({}))) as MojoResponse;
-
-    await ctx.runMutation(internal.mojoOtp.markSent, {
-      id: gate.id,
-      ok: response.ok,
-      // MojoAuth hands back a state_id with the send; verification requires it.
-      stateId: data.state_id,
-      detail: response.ok ? undefined : `mojoauth ${response.status} ${data.message ?? ""}`.trim(),
-    });
-
-    if (!response.ok) {
+    try {
+      await createAuth(ctx).api.sendVerificationOTP({
+        body: { email, type: "sign-in" },
+      });
+    } catch (caught) {
+      const detail = caught instanceof Error ? caught.message : String(caught);
+      await ctx.runMutation(internal.otp.markSent, { id: gate.id, ok: false, detail });
       throw new Error(
-        `The code could not be emailed (mail service replied ${response.status}). Try again in a moment.`,
+        "The code could not be emailed just now. Try again in a moment.",
       );
     }
 
+    await ctx.runMutation(internal.otp.markSent, { id: gate.id, ok: true });
     return { ok: true as const };
   },
 });
 
 /**
- * Confirms a code the student typed in, straight against MojoAuth. Runs inside
- * the Convex Credentials authorize step, so a pass here signs the session in.
+ * Confirms a typed code through Better Auth. Runs inside the Convex Credentials
+ * authorize step, so a pass here signs the session in. `signInEmailOTP` both
+ * verifies and consumes the code, and registers the address the first time.
  */
 export const verify = internalAction({
-  args: { email: v.string(), otp: v.string(), stateId: v.optional(v.string()) },
-  handler: async (_ctx, args) => {
-    const apiKey = mojoKey();
-    if (!apiKey) throw missingKeyError();
-
-    // MojoAuth verifies by challenge id, not by email. Keep the email-only
-    // shape as a fallback for rows issued before the state id was stored.
-    const body = args.stateId
-      ? { state_id: args.stateId, otp: args.otp }
-      : { email: args.email, otp: args.otp };
-
-    const response = await fetch(`${MOJOAUTH_ENDPOINT}/users/emailotp/verify`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
-      body: JSON.stringify(body),
-    });
-    const data = (await response.json().catch(() => ({}))) as MojoResponse;
-
-    if (!response.ok) {
-      return { authenticated: false as const, detail: data.message ?? `status ${response.status}` };
-    }
-
-    // Accept any success signal MojoAuth may return, but never override an
-    // explicit `authenticated: false`.
-    const authenticated =
-      data.authenticated !== false &&
-      (data.authenticated === true ||
-        data.status === "success" ||
-        Boolean(data.oauth?.access_token));
-
-    return { authenticated, detail: undefined as string | undefined };
-  },
-});
-
-/**
- * The MojoAuth challenge id for the newest live code on an address. Verification
- * cannot read the database itself, so `authorize` fetches it through this query
- * before calling `verify`.
- */
-export const pendingChallenge = internalQuery({
-  args: { email: v.string() },
+  args: { email: v.string(), otp: v.string() },
   handler: async (ctx, args) => {
-    const email = normalize(args.email);
-    const rows = await ctx.db
-      .query("otpCodes")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .order("desc")
-      .take(6);
-
-    const active = rows.find((row) => !row.consumedAt);
-    return { stateId: active?.stateId ?? null };
+    try {
+      await createAuth(ctx).api.signInEmailOTP({
+        body: { email: normalize(args.email), otp: args.otp },
+      });
+      return { authenticated: true as const, detail: undefined as string | undefined };
+    } catch (caught) {
+      const detail = caught instanceof Error ? caught.message : String(caught);
+      return { authenticated: false as const, detail };
+    }
   },
 });
 
 /**
- * Domain check, resend cooldown, per-window cap, invalidation of older codes,
- * then a fresh audit row. Same policy `otp.issue` always applied.
+ * Domain check, resend cooldown, per-window cap and invalidation of older
+ * codes, then a fresh audit row.
  */
 export const prepareGate = internalMutation({
   args: { email: v.string() },
@@ -212,7 +131,7 @@ export const prepareGate = internalMutation({
 
     const id = await ctx.db.insert("otpCodes", {
       email,
-      // The code lives in MojoAuth; this column only exists in the schema.
+      // The code lives in Better Auth; this column only exists in the schema.
       code: "",
       expiresAt: now + WINDOW_MS,
       attempts: 0,
@@ -225,16 +144,10 @@ export const prepareGate = internalMutation({
 });
 
 export const markSent = internalMutation({
-  args: {
-    id: v.id("otpCodes"),
-    ok: v.boolean(),
-    stateId: v.optional(v.string()),
-    detail: v.optional(v.string()),
-  },
+  args: { id: v.id("otpCodes"), ok: v.boolean(), detail: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
       deliveredAt: args.ok ? Date.now() : undefined,
-      stateId: args.ok ? args.stateId : undefined,
       failedReason: args.ok ? undefined : args.detail ?? "delivery failed",
     });
     return { ok: true };
