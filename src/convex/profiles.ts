@@ -5,6 +5,7 @@ import {
   CAMPUS_DOMAIN,
   getProfile,
   isCampusEmail,
+  isVerifiedCampusStudent,
   isVerifiedStudent,
   lookupIdentity,
   toE164,
@@ -55,7 +56,7 @@ export const me = query({
       isAnonymous: Boolean(user.isAnonymous),
       emailVerified: isVerifiedStudent(user),
       campusAccount,
-      canTrade: !user.isAnonymous && profile !== null,
+      canTrade: !user.isAnonymous && isVerifiedCampusStudent(user) && profile !== null,
       memberSince: user._creationTime,
       campusDomain: CAMPUS_DOMAIN,
       profile: profile
@@ -90,6 +91,11 @@ export const saveProfile = mutation({
     }
     const user = await ctx.db.get(userId);
     if (!user) throw new Error("We could not find your account.");
+    if (user.isAnonymous || !isVerifiedCampusStudent(user)) {
+      throw new Error(
+        `Verify your @${CAMPUS_DOMAIN} email before creating a student profile.`,
+      );
+    }
 
     const name = normalize(args.name, 60);
     if (name.length < 2) {

@@ -1,9 +1,10 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
-import { mutation, query } from "./_generated/server";
-import { identityLoader, requireStudent, requireUser } from "./helpers";
+import { internalMutation, mutation, query } from "./_generated/server";
+import { identityLoader, requireStudent } from "./helpers";
 import { listingKindValidator, listingStatusValidator } from "./schema";
 
 const MAX_IMAGES = 6;
@@ -323,8 +324,43 @@ export const remove = mutation({
       await ctx.db.delete(report._id);
     }
 
+    const views = await ctx.db
+      .query("listingViews")
+      .withIndex("by_listing", (q) => q.eq("listingId", args.id))
+      .take(200);
+    for (const view of views) {
+      await ctx.db.delete(view._id);
+    }
+    if (views.length === 200) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.listings.deleteListingViewsBatch,
+        { listingId: args.id },
+      );
+    }
+
     await ctx.db.delete(args.id);
     return { ok: true };
+  },
+});
+
+export const deleteListingViewsBatch = internalMutation({
+  args: { listingId: v.id("listings") },
+  handler: async (ctx, args) => {
+    const views = await ctx.db
+      .query("listingViews")
+      .withIndex("by_listing", (q) => q.eq("listingId", args.listingId))
+      .take(200);
+    for (const view of views) {
+      await ctx.db.delete(view._id);
+    }
+    if (views.length === 200) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.listings.deleteListingViewsBatch,
+        args,
+      );
+    }
   },
 });
 
@@ -366,6 +402,15 @@ export const report = mutation({
     const { user } = await requireStudent(ctx);
     const listing = await ctx.db.get(args.listingId);
     if (!listing) throw new Error("That post is no longer available.");
+    const existing = await ctx.db
+      .query("reports")
+      .withIndex("by_reporter_listing", (q) =>
+        q.eq("reporterId", user._id).eq("listingId", args.listingId),
+      )
+      .unique();
+    if (existing) {
+      throw new Error("You have already reported this post.");
+    }
 
     await ctx.db.insert("reports", {
       listingId: args.listingId,
@@ -382,8 +427,22 @@ export const report = mutation({
 export const bumpViews = mutation({
   args: { id: v.id("listings") },
   handler: async (ctx, args) => {
+    const { user } = await requireStudent(ctx);
     const listing = await ctx.db.get(args.id);
     if (!listing) return { ok: false };
+    const existing = await ctx.db
+      .query("listingViews")
+      .withIndex("by_user_listing", (q) =>
+        q.eq("userId", user._id).eq("listingId", args.id),
+      )
+      .unique();
+    if (existing) return { ok: true };
+
+    await ctx.db.insert("listingViews", {
+      userId: user._id,
+      listingId: args.id,
+      createdAt: Date.now(),
+    });
     await ctx.db.patch(args.id, { views: listing.views + 1 });
     return { ok: true };
   },
@@ -393,7 +452,7 @@ export const bumpViews = mutation({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    await requireUser(ctx);
+    await requireStudent(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -402,7 +461,7 @@ export const generateUploadUrl = mutation({
 export const imageUrl = mutation({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, args) => {
-    await requireUser(ctx);
+    await requireStudent(ctx);
     const url = await ctx.storage.getUrl(args.storageId);
     if (!url) throw new Error("That upload could not be processed. Try again.");
     return { url };

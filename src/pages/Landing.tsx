@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/campus/AppShell";
-import { EmptyState, Loading, Notice } from "@/components/campus/Bits";
+import { EmptyState, Loading } from "@/components/campus/Bits";
 import { ListingCard } from "@/components/campus/ListingCard";
 import { api } from "@/convex/_generated/api";
 import { useCampusUser } from "@/hooks/use-campus-user";
@@ -13,7 +13,7 @@ import {
   formatPrice,
   relativeTime,
 } from "@/lib/campus";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
@@ -136,9 +136,6 @@ export default function Landing() {
   const itemFeed = useQuery(api.listings.feed, { kind: "item", limit: 24 });
   const serviceFeed = useQuery(api.listings.feed, { kind: "service", limit: 4 });
   const stats = useQuery(api.listings.campusStats);
-  const seed = useMutation(api.seed.loadDemoListings);
-  const [seeding, setSeeding] = useState(false);
-  const [seedError, setSeedError] = useState<string | null>(null);
 
   const postHref = isAuthenticated ? "/post" : "/auth?returnTo=%2Fpost";
 
@@ -153,20 +150,6 @@ export default function Landing() {
     category,
     count: items.filter((listing) => listing.category === category).length,
   }));
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    setSeedError(null);
-    try {
-      await seed({});
-    } catch (error) {
-      setSeedError(
-        error instanceof Error ? error.message : "Could not add the examples.",
-      );
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   return (
     <AppShell>
@@ -324,22 +307,13 @@ export default function Landing() {
               <EmptyState
                 eyebrow="Empty shelves"
                 title="Nothing has been posted yet"
-                body={`${CAMPUS_NAME} is brand new, so the board is still empty. Load a handful of example posts, or put up the first real one.`}
+                body={`${CAMPUS_NAME} is brand new, so the board is still empty. Put up the first real post.`}
               >
                 <div className="cm-actions">
-                  <button
-                    type="button"
-                    className="cm-btn"
-                    onClick={handleSeed}
-                    disabled={seeding}
-                  >
-                    {seeding ? "Adding examples…" : "Load example listings"}
-                  </button>
                   <Link to={postHref} className="cm-btn cm-btn--quiet">
                     Post something real
                   </Link>
                 </div>
-                {seedError && <Notice tone="error">{seedError}</Notice>}
               </EmptyState>
             )}
           </div>

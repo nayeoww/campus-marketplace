@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/campus/AppShell";
-import { Breadcrumbs, EmptyState, Loading, Notice } from "@/components/campus/Bits";
+import { Breadcrumbs, EmptyState, Loading } from "@/components/campus/Bits";
 import { ListingGrid } from "@/components/campus/ListingCard";
 import { api } from "@/convex/_generated/api";
 import { useCampusUser } from "@/hooks/use-campus-user";
@@ -10,7 +10,7 @@ import {
   SORT_OPTIONS,
   type ListingKind,
 } from "@/lib/campus";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 
@@ -41,9 +41,6 @@ export default function Browse({ kind }: { kind: ListingKind }) {
   });
   const allFeed = useQuery(api.listings.feed, { kind, limit: 60 });
   const stats = useQuery(api.listings.campusStats);
-  const seed = useMutation(api.seed.loadDemoListings);
-  const [seeding, setSeeding] = useState(false);
-  const [seedError, setSeedError] = useState<string | null>(null);
 
   const postHref = isAuthenticated ? "/post" : "/auth?returnTo=%2Fpost";
   const listings = feed?.listings ?? [];
@@ -62,20 +59,6 @@ export default function Browse({ kind }: { kind: ListingKind }) {
 
   const countFor = (option: string) =>
     (allFeed?.listings ?? []).filter((listing) => listing.category === option).length;
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    setSeedError(null);
-    try {
-      await seed({});
-    } catch (error) {
-      setSeedError(
-        error instanceof Error ? error.message : "Could not add the examples.",
-      );
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   return (
     <AppShell>
@@ -216,17 +199,13 @@ export default function Browse({ kind }: { kind: ListingKind }) {
             <EmptyState
               eyebrow="Empty board"
               title="The board is empty — be the first"
-              body={`No one has posted anything on ${CAMPUS_NAME} yet. Load a set of example listings to see the marketplace with content in it, or put up your own post right away.`}
+              body={`No one has posted anything on ${CAMPUS_NAME} yet. Be the first to put up a real post.`}
             >
               <div className="cm-actions">
-                <button type="button" className="cm-btn" onClick={handleSeed} disabled={seeding}>
-                  {seeding ? "Adding examples…" : "Load example listings"}
-                </button>
                 <Link to={postHref} className="cm-btn cm-btn--quiet">
                   {meta.cta}
                 </Link>
               </div>
-              {seedError && <Notice tone="error">{seedError}</Notice>}
             </EmptyState>
           ) : (
             <EmptyState

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
 type SeedStudent = {
@@ -276,7 +276,7 @@ const HOUR = 60 * 60 * 1000;
  * Fills an empty campus with example students and listings so the marketplace
  * has something to show. It refuses to run once real posts exist.
  */
-export const loadDemoListings = mutation({
+export const loadDemoListings = internalMutation({
   args: { note: v.optional(v.string()) },
   handler: async (ctx) => {
     const existing = await ctx.db.query("listings").first();

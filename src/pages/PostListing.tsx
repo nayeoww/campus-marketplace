@@ -84,6 +84,7 @@ export default function PostListing({ mode }: { mode: "create" | "edit" }) {
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [previewTimestamp] = useState(() => Date.now());
 
   // Fill the form once with the post being edited.
   if (mode === "edit" && existing?.listing && !hydrated) {
@@ -189,7 +190,7 @@ export default function PostListing({ mode }: { mode: "create" | "edit" }) {
 
   const preview: ListingRow = {
     _id: "preview" as never,
-    _creationTime: Date.now(),
+    _creationTime: previewTimestamp,
     kind,
     title: title.trim() || "Your title appears here",
     description:
@@ -205,8 +206,8 @@ export default function PostListing({ mode }: { mode: "create" | "edit" }) {
     sellerId: "preview" as never,
     status: "live",
     views: 0,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: previewTimestamp,
+    updatedAt: previewTimestamp,
     seller: {
       _id: "preview",
       name: me?.name ?? "You",

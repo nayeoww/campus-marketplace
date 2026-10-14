@@ -19,15 +19,29 @@ Use bun for the package manager.
 
 ## Setup
 
-This project is set up already and running on a cloud environment, as well as a convex development in the sandbox.
+Run the frontend with `bun run dev`. Configure a Convex deployment before
+running its backend or generating its types.
 
 ## Environment Variables
 
-The project is set up with project specific CONVEX_DEPLOYMENT and VITE_CONVEX_URL environment variables on the client side.
+The frontend needs `VITE_CONVEX_URL` set to the public URL for the intended
+Convex deployment. Convex functions need `CONVEX_SITE_URL` and `MOJOAUTH`
+configured in the Convex deployment's environment. `MESSAGEBIRD_API_KEY` is
+optional and only enables SMS notifications. Set `VLY_CONVEX_AUTH_ISSUER` only
+when using a non-default federated issuer.
 
-The convex server has a separate set of environment variables that are accessible by the convex backend.
+Keep deployment secrets in the hosting provider or Convex environment settings;
+do not commit `.env.keys` or other private environment files. A dotenv
+encryption key was previously committed in this repository: rotate/revoke that
+key and any values encrypted with it, then remove the key from Git history
+before making the repository public. Deleting the file from the working tree
+does not remove historical copies.
 
-Currently, these variables include auth-specific keys: JWKS, JWT_PRIVATE_KEY, and SITE_URL.
+Before a production release, generate and commit the Convex bindings, deploy
+the schema, and verify the required environment variables against the
+production deployment. Since schema validation is enabled, check existing
+production documents for compatibility before applying schema changes. Do not
+seed demo students or listings into production.
 
 
 # Using Authentication (Important!)

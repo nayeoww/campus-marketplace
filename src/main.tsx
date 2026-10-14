@@ -103,7 +103,11 @@ class RootErrorBoundary extends React.Component<
   }
 }
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+const convexUrl = import.meta.env.VITE_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error("VITE_CONVEX_URL must be set to the target Convex deployment.");
+}
+const convex = new ConvexReactClient(convexUrl);
 
 
 

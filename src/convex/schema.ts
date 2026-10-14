@@ -50,10 +50,14 @@ const schema = defineSchema(
       image: v.optional(v.string()), // image of the user. do not remove
       email: v.optional(v.string()), // email of the user. do not remove
       emailVerificationTime: v.optional(v.number()), // email verification time. do not remove
+      phone: v.optional(v.string()),
+      phoneVerificationTime: v.optional(v.number()),
       isAnonymous: v.optional(v.boolean()), // is the user anonymous. do not remove
 
       role: v.optional(roleValidator), // role of the user. do not remove
-    }).index("email", ["email"]), // index for the email. do not remove or modify
+    })
+      .index("email", ["email"])
+      .index("phone", ["phone"]),
 
     /** Student profile that is completed after the campus email is verified. */
     profiles: defineTable({
@@ -100,6 +104,14 @@ const schema = defineSchema(
       .index("by_user_listing", ["userId", "listingId"])
       .index("by_listing", ["listingId"]),
 
+    listingViews: defineTable({
+      userId: v.id("users"),
+      listingId: v.id("listings"),
+      createdAt: v.number(),
+    })
+      .index("by_user_listing", ["userId", "listingId"])
+      .index("by_listing", ["listingId"]),
+
     /** Reports raised from a listing page, reviewed by the campus moderator. */
     reports: defineTable({
       listingId: v.id("listings"),
@@ -107,7 +119,9 @@ const schema = defineSchema(
       reason: v.string(),
       note: v.optional(v.string()),
       createdAt: v.number(),
-    }).index("by_listing", ["listingId"]),
+    })
+      .index("by_listing", ["listingId"])
+      .index("by_reporter_listing", ["reporterId", "listingId"]),
 
     /**
      * A thread between two students. `a`/`b` are always stored in a canonical
@@ -154,7 +168,7 @@ const schema = defineSchema(
     }).index("by_email", ["email", "createdAt"]),
   },
   {
-    schemaValidation: false,
+    schemaValidation: true,
   },
 );
 

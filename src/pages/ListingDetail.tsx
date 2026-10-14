@@ -55,10 +55,10 @@ export default function ListingDetail() {
   const viewCounted = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!id || viewCounted.current === id) return;
+    if (!id || !canTrade || viewCounted.current === id) return;
     viewCounted.current = id;
     void bumpViews({ id: listingId });
-  }, [id, listingId, bumpViews]);
+  }, [id, listingId, canTrade, bumpViews]);
 
   useEffect(() => {
     if (!dialog) return;

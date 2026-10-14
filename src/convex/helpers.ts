@@ -58,6 +58,10 @@ export function isVerifiedStudent(user: Doc<"users">) {
   return Boolean(user.emailVerificationTime);
 }
 
+export function isVerifiedCampusStudent(user: Doc<"users">) {
+  return isCampusEmail(user.email) && isVerifiedStudent(user);
+}
+
 /**
  * Anyone posting, saving or messaging must have an account with a finished
  * student profile — anonymous guest sessions can only browse.
@@ -67,6 +71,11 @@ export async function requireStudent(ctx: Ctx) {
   if (user.isAnonymous) {
     throw new Error(
       "Guest sessions can only browse. Register with your SSIPMT email to post on CampusMart.",
+    );
+  }
+  if (!isVerifiedCampusStudent(user)) {
+    throw new Error(
+      "Verify your SSIPMT email before using student features on CampusMart.",
     );
   }
   const profile = await getProfile(ctx, user._id);

@@ -3,7 +3,13 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
-import { getProfile, identityLoader, requireStudent, requireUser, toE164 } from "./helpers";
+import {
+  getProfile,
+  identityLoader,
+  isVerifiedCampusStudent,
+  requireStudent,
+  toE164,
+} from "./helpers";
 
 /** Threads are stored with a canonical pair so two students never fork a chat. */
 function orderPair(first: Id<"users">, second: Id<"users">) {
@@ -40,11 +46,18 @@ export const start = mutation({
 
     const counterpart = await ctx.db.get(args.otherUserId);
     if (!counterpart) throw new Error("That student is no longer on CampusMart.");
+    const counterpartProfile = await getProfile(ctx, counterpart._id);
+    if (!isVerifiedCampusStudent(counterpart) || !counterpartProfile) {
+      throw new Error("You can only message verified CampusMart students.");
+    }
 
     let listingTitle: string | null = null;
     if (args.listingId) {
       const listing = await ctx.db.get(args.listingId);
       if (!listing) throw new Error("That post is no longer available.");
+      if (listing.sellerId !== args.otherUserId) {
+        throw new Error("You can only message the seller about this post.");
+      }
       listingTitle = listing.title;
     }
 
@@ -99,10 +112,8 @@ export const start = mutation({
     // saved a number. Scheduled, so MessageBird problems cannot fail the
     // message; skipped quietly when there is no number or no key.
     if (isNewThread && listingTitle) {
-      const sellerId = args.otherUserId;
-      const sellerProfile = await getProfile(ctx, sellerId);
-      const phone = sellerProfile?.phone
-        ? toE164(sellerProfile.phone)
+      const phone = counterpartProfile.phone
+        ? toE164(counterpartProfile.phone)
         : null;
       if (phone) {
         ctx.scheduler.runAfter(0, internal.sms.notifySeller, {
@@ -270,7 +281,7 @@ export const send = mutation({
 export const markRead = mutation({
   args: { conversationId: v.id("conversations") },
   handler: async (ctx, args) => {
-    const user = await requireUser(ctx);
+    const { user } = await requireStudent(ctx);
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) return { ok: false };
 
